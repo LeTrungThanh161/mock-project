@@ -141,3 +141,29 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# ==========================================================
+# VS Code specific files
+# ==========================================================
+.vscode/
+!.vscode/extensions.json
+*.code-workspace
+
+# ==========================================================
+# Java / Maven specific files (Backend)
+# ==========================================================
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/*.iml
+backend/*.ipr
+backend/*.iws
+backend/.idea/
+
+# ==========================================================
+# SQL Server specific files (Nếu có lưu file backup trong project)
+# ==========================================================
+*.mdf
+*.ldf
+*.bak
