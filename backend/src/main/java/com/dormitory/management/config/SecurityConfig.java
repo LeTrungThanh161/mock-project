@@ -116,7 +116,8 @@ public class SecurityConfig {
                         // ── [1] AUTH — Công khai ──────────────────────────────────────────────
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/auth/register")
+                                "/api/auth/register",
+                                "/api/auth/debug-token")
                         .permitAll()
 
                         // ── [2] ADMIN ONLY ────────────────────────────────────────────────────
