@@ -17,6 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
+
 // ========================================================================
 // PHÂN QUYỀN THEO ROLE — BẢNG TÓM TẮT
 // ========================================================================
@@ -109,6 +114,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -116,7 +122,8 @@ public class SecurityConfig {
                         // ── [1] AUTH — Công khai ──────────────────────────────────────────────
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/auth/register")
+                                "/api/auth/register",
+                                "/api/auth/debug-token")
                         .permitAll()
 
                         // ── [2] ADMIN ONLY ────────────────────────────────────────────────────
@@ -183,7 +190,8 @@ public class SecurityConfig {
                                 "/api/contracts/my", // hợp đồng của mình
                                 "/api/invoices/my", // hóa đơn của mình
                                 "/api/issue-tickets/my", // sự cố của mình
-                                "/api/temporary-absences/my" // đơn tạm vắng của mình
+                                "/api/temporary-absences/my", // đơn tạm vắng của mình
+                                "/api/students/profile"
                         ).hasRole("STUDENT")
 
                         // ── [5] STUDENT — Tự nộp đơn (POST) ─────────────────────────────────
@@ -201,10 +209,33 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 // Thứ tự filter quan trọng: JWT xác thực trước → RLS set context sau
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(rlsContextFilter, JwtAuthenticationFilter.class);
+                 .addFilterAfter(rlsContextFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
+
+    @Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // Cho phép Origin từ React/Vite (localhost:5173)
+    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+    
+    // Cho phép các HTTP Methods
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+    
+    // Cho phép gửi các Headers (như Authorization Bearer token, Content-Type...)
+    configuration.setAllowedHeaders(List.of("*"));
+    
+    // Cho phép truyền Cookie / Authentication Header nếu có
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    // Áp dụng cho toàn bộ endpoint /api/**
+    source.registerCorsConfiguration("/**", configuration);
+    
+    return source;
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -215,4 +246,5 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
 }

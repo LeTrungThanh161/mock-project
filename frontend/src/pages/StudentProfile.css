@@ -1,0 +1,189 @@
+.profile-container {
+  padding: 2rem;
+  min-height: 100%;
+  color: #333;
+  background-color: #fff;
+}
+
+.profile-header {
+  margin-bottom: 1.5rem;
+}
+
+.profile-header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.profile-header p {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.profile-form-wrapper {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 2rem;
+  background-color: #fff;
+}
+
+.form-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.form-control-light {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.form-control-light.read-only {
+  background-color: #fff; /* same as normal */
+  outline: none;
+}
+
+.form-control-light.read-only:focus {
+  outline: none;
+  border: 1px solid #ccc; /* no blue outline when read only */
+}
+
+.form-control-light.editable {
+  background-color: #fff;
+}
+
+.form-control-light.editable:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-update {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-update:hover {
+  background-color: #0056b3;
+}
+
+.btn-cancel-simple {
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel-simple:hover {
+  background-color: #f1f1f1;
+}
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Modal Xác Nhận */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-modal h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-modal-cancel {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-modal-confirm {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-modal-confirm:hover {
+  background: #0056b3;
+}
+

@@ -43,7 +43,7 @@ public class AuthService {
             throw new BadCredentialsException("Sai mật khẩu");
         }
 
-        if (account.getStatus() != AccountStatus.ACTIVE) {
+        if (account.getStatus() != AccountStatus.Active) {
             throw new IllegalStateException("Tài khoản đang bị khoá hoặc vô hiệu hoá");
         }
 
@@ -74,6 +74,7 @@ public class AuthService {
         accountRepository.save(account);
 
         return LoginResponse.builder()
+                .accountId(account.getAccountId())
                 .token(token)
                 .role(roleName)
                 .buildingId(buildingId)
@@ -97,20 +98,20 @@ public class AuthService {
         Account account = Account.builder()
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .status(AccountStatus.ACTIVE)
+                .status(AccountStatus.Active)
                 .role(studentRole)
                 .createdAt(LocalDateTime.now())
                 .build();
         account = accountRepository.save(account);
 
         Student student = Student.builder()
-                .account(account)
+                .accountId(account)
                 .studentCode(request.getStudentCode())
                 .fullName(request.getFullName())
                 .gender(request.getGender())
                 .phoneNumber(request.getPhoneNumber())
                 .className(request.getClassName())
-                .status(StudentStatus.ACTIVE)
+                .status(StudentStatus.Active)
                 .build();
         studentRepository.save(student);
     }

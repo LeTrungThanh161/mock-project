@@ -59,6 +59,8 @@ public class Invoice {
      * Chỉ đọc từ phía Java, không insert/update.
      */
     @Column(insertable = false, updatable = false, precision = 12, scale = 2)
+    @org.hibernate.annotations.Generated
+    @org.hibernate.annotations.ColumnTransformer(read = "totalAmount")
     private BigDecimal totalAmount;
 
     private LocalDate dueDate;

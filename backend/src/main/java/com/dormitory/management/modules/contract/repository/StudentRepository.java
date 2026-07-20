@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Integer> {
 
-    @Query("SELECT s FROM Student s WHERE s.account.accountId = :accountId")
+    @Query(value = "SELECT * FROM Student WHERE AccountId = :accountId", nativeQuery = true)
     Optional<Student> findByAccountId(@Param("accountId") Integer accountId);
 
     boolean existsByStudentCode(String studentCode);

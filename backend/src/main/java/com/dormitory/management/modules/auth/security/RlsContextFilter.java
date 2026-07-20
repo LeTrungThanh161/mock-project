@@ -41,8 +41,9 @@ public class RlsContextFilter extends OncePerRequestFilter {
                 } else if ("Manager".equalsIgnoreCase(role) && buildingId != null) {
                     jdbcTemplate.update("EXEC dbo.sp_SetSecurityContext @Role = N'Manager', @BuildingId = ?",
                             buildingId);
+                } else if ("Student".equalsIgnoreCase(role)) {
+                    jdbcTemplate.execute("EXEC dbo.sp_SetSecurityContext @Role = N'Student'");
                 }
-                // Student: không set RLS (không truy cập trực tiếp bảng nghiệp vụ, chỉ xem qua API)
             } catch (Exception e) {
                 log.warn("Không thể set RLS context: {}", e.getMessage());
             }

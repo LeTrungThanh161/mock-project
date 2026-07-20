@@ -16,6 +16,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final AccountRepository accountRepository;
 
+    @Transactional(readOnly = true)
     public StudentResponse getProfile(Integer accountId) {
         Student student = studentRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Student profile not found for this account"));
@@ -44,6 +45,7 @@ public class StudentService {
     private StudentResponse mapToResponse(Student student) {
         return StudentResponse.builder()
                 .studentId(student.getStudentId())
+                .accountId(student.getAccountId() != null ? student.getAccountId().getAccountId() : null)
                 .studentCode(student.getStudentCode())
                 .fullName(student.getFullName())
                 .gender(student.getGender())

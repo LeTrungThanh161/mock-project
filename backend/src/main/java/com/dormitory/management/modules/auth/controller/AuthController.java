@@ -30,6 +30,12 @@ public class AuthController {
      * Body: { "email": "...", "password": "..." }
      * Response: { "token": "...", "role": "Manager", "buildingId": 2, "fullName": "..." }
      */
+    @GetMapping("/debug-token")
+    public ResponseEntity<String> debugToken() {
+        String token = jwtService.generateToken(7, "Student", null, "vanb@gmail.com");
+        return ResponseEntity.ok(token);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
