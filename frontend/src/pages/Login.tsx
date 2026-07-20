@@ -28,7 +28,7 @@ const Login = () => {
       const normalizedRole = (data.role as string).toUpperCase() as 'STUDENT' | 'ADMIN' | 'MANAGER';
 
       login({
-        accountId: data.accountId ?? 0,   // backend có thể không trả, sẽ bổ sung sau
+        accountId: data.accountId || 0,   // backend có thể không trả, sẽ bổ sung sau
         username: data.email ?? username,
         fullName: data.fullName ?? '',
         role: normalizedRole,

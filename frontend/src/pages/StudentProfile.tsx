@@ -20,6 +20,7 @@ const StudentProfile = () => {
       try {
         const data = await getStudentProfile();
         setProfile(data);
+        console.log(data);
         setFormData({
           fullName: data?.fullName || '',
           phoneNumber: data?.phoneNumber || '',

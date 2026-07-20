@@ -74,6 +74,7 @@ public class AuthService {
         accountRepository.save(account);
 
         return LoginResponse.builder()
+                .accountId(account.getAccountId())
                 .token(token)
                 .role(roleName)
                 .buildingId(buildingId)
@@ -104,7 +105,7 @@ public class AuthService {
         account = accountRepository.save(account);
 
         Student student = Student.builder()
-                .account(account)
+                .accountId(account)
                 .studentCode(request.getStudentCode())
                 .fullName(request.getFullName())
                 .gender(request.getGender())

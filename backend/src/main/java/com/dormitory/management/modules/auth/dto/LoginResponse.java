@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
+    private Integer accountId;
     private String token;
     private String role;
     private Integer buildingId;   // null nếu là Admin

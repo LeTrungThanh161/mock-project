@@ -45,6 +45,7 @@ public class StudentService {
     private StudentResponse mapToResponse(Student student) {
         return StudentResponse.builder()
                 .studentId(student.getStudentId())
+                .accountId(student.getAccountId() != null ? student.getAccountId().getAccountId() : null)
                 .studentCode(student.getStudentCode())
                 .fullName(student.getFullName())
                 .gender(student.getGender())

@@ -184,7 +184,8 @@ public class SecurityConfig {
                                 "/api/contracts/my", // hợp đồng của mình
                                 "/api/invoices/my", // hóa đơn của mình
                                 "/api/issue-tickets/my", // sự cố của mình
-                                "/api/temporary-absences/my" // đơn tạm vắng của mình
+                                "/api/temporary-absences/my", // đơn tạm vắng của mình
+                                "/api/students/profile"
                         ).hasRole("STUDENT")
 
                         // ── [5] STUDENT — Tự nộp đơn (POST) ─────────────────────────────────
