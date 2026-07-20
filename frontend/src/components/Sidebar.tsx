@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   User, FileText, FileSignature, Clock,
   LayoutDashboard, Building2, Users, ClipboardList,
-  Wrench, Receipt, LogOut, ChevronRight
+  Wrench, Receipt, LogOut, ChevronRight, Zap, Settings, HardHat
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../context/AuthContext';
@@ -17,6 +17,8 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/room-registration', icon: <FileText size={18} />,       label: 'Đăng ký phòng' },
     { to: '/contracts',         icon: <FileSignature size={18} />,  label: 'Hợp đồng' },
     { to: '/absences',          icon: <Clock size={18} />,          label: 'Tạm vắng' },
+    { to: '/invoices',          icon: <Receipt size={18} />,        label: 'Hóa đơn' },
+    { to: '/helpdesk',          icon: <Wrench size={18} />,         label: 'Hỗ trợ' },
   ],
   ADMIN: [
     { to: '/dashboard',         icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -25,8 +27,11 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/applications',      icon: <ClipboardList size={18} />,   label: 'Đơn đăng ký' },
     { to: '/contracts',         icon: <FileSignature size={18} />,   label: 'Hợp đồng' },
     { to: '/absences',          icon: <Clock size={18} />,           label: 'Tạm vắng' },
-    { to: '/helpdesk',          icon: <Wrench size={18} />,          label: 'Báo cáo sự cố' },
+    { to: '/pricing-tiers',     icon: <Settings size={18} />,        label: 'Cấu hình giá' },
+    { to: '/meter-readings',    icon: <Zap size={18} />,             label: 'Điện & Nước' },
     { to: '/invoices',          icon: <Receipt size={18} />,         label: 'Hóa đơn' },
+    { to: '/helpdesk',          icon: <Wrench size={18} />,          label: 'Hỗ trợ' },
+    { to: '/technicians',       icon: <HardHat size={18} />,         label: 'Nhân viên kỹ thuật' },
   ],
   MANAGER: [
     { to: '/dashboard',         icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -35,8 +40,11 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/applications',      icon: <ClipboardList size={18} />,   label: 'Đơn đăng ký' },
     { to: '/contracts',         icon: <FileSignature size={18} />,   label: 'Hợp đồng' },
     { to: '/absences',          icon: <Clock size={18} />,           label: 'Tạm vắng' },
-    { to: '/helpdesk',          icon: <Wrench size={18} />,          label: 'Báo cáo sự cố' },
+    { to: '/pricing-tiers',     icon: <Settings size={18} />,        label: 'Cấu hình giá' },
+    { to: '/meter-readings',    icon: <Zap size={18} />,             label: 'Điện & Nước' },
     { to: '/invoices',          icon: <Receipt size={18} />,         label: 'Hóa đơn' },
+    { to: '/helpdesk',          icon: <Wrench size={18} />,          label: 'Hỗ trợ' },
+    { to: '/technicians',       icon: <HardHat size={18} />,         label: 'Nhân viên kỹ thuật' },
   ],
 };
 
