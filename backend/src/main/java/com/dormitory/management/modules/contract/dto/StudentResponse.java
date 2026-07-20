@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentResponse {
     private Integer studentId;
+    private Integer accountId;
     private String studentCode;
     private String fullName;
     private Gender gender;

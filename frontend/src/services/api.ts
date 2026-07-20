@@ -5,7 +5,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 giây timeout
+  timeout: 10000, // 30 giây timeout
 });
 
 // Thêm interceptor để đính kèm token (nếu có Auth)
@@ -36,6 +36,7 @@ api.interceptors.response.use(
 
 export const getStudentProfile = async () => {
   const response = await api.get('/students/profile');
+  console.log(response.data);
   return response.data;
 };
 

@@ -23,7 +23,7 @@ public class Student {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accountId", unique = true)
-    private Account account;
+    private Account accountId;
 
     @Column(nullable = false, unique = true, length = 20)
     private String studentCode;
