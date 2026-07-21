@@ -136,7 +136,7 @@ const StudentProfile = () => {
             </div>
           </div>
 
-          <div className="form-row">
+          {/* <div className="form-row">
             <div className="form-group">
               <label>Email sinh viên</label>
               <input
@@ -146,7 +146,7 @@ const StudentProfile = () => {
                 readOnly
               />
             </div>
-          </div>
+          </div> */}
 
           {isEditing && (
             <div className="form-row">
