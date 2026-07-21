@@ -51,7 +51,7 @@ public class HelpdeskService {
                 .student(student)
                 .description(request.getDescription())
                 .priority(request.getPriority())
-                .status(TicketStatus.PENDING)
+                .status(TicketStatus.Pending)
                 .imagePath(imageUrl)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -62,7 +62,7 @@ public class HelpdeskService {
         IssueTicketHistory history = IssueTicketHistory.builder()
                 .ticket(savedTicket)
                 .oldStatus(null)
-                .newStatus(TicketStatus.PENDING)
+                .newStatus(TicketStatus.Pending)
                 .changedAt(LocalDateTime.now())
                 .build();
         issueTicketHistoryRepository.save(history);
@@ -78,17 +78,45 @@ public class HelpdeskService {
                 .orElseThrow(() -> new RuntimeException("Technician not found"));
 
         TicketStatus oldStatus = ticket.getStatus();
-        
+
         ticket.setAssignedTechnician(technician);
-        ticket.setStatus(TicketStatus.IN_PROGRESS);
-        
+        ticket.setStatus(TicketStatus.InProgress);
+
         IssueTicket updatedTicket = issueTicketRepository.save(ticket);
 
         // Record history
         IssueTicketHistory history = IssueTicketHistory.builder()
                 .ticket(updatedTicket)
                 .oldStatus(oldStatus)
-                .newStatus(TicketStatus.IN_PROGRESS)
+                .newStatus(TicketStatus.InProgress)
+                .changedAt(LocalDateTime.now())
+                .build();
+        issueTicketHistoryRepository.save(history);
+
+        return updatedTicket;
+    }
+
+    @Transactional
+    public IssueTicket completeTicket(Integer ticketId) {
+        IssueTicket ticket = issueTicketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        TicketStatus oldStatus = ticket.getStatus();
+        ticket.setStatus(TicketStatus.Completed);
+        ticket.setResolvedAt(LocalDateTime.now());
+
+        if (ticket.getAssignedTechnician() != null) {
+            Technician technician = ticket.getAssignedTechnician();
+            technician.setStatus(com.dormitory.management.constants.AccountStatus.Active);
+            technicianRepository.save(technician);
+        }
+
+        IssueTicket updatedTicket = issueTicketRepository.save(ticket);
+
+        IssueTicketHistory history = IssueTicketHistory.builder()
+                .ticket(updatedTicket)
+                .oldStatus(oldStatus)
+                .newStatus(TicketStatus.Completed)
                 .changedAt(LocalDateTime.now())
                 .build();
         issueTicketHistoryRepository.save(history);

@@ -37,6 +37,12 @@ public class HelpdeskController {
         return ResponseEntity.ok(ticket);
     }
 
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<IssueTicket> completeTicket(@PathVariable Integer id) {
+        IssueTicket ticket = helpdeskService.completeTicket(id);
+        return ResponseEntity.ok(ticket);
+    }
+
     @GetMapping("/{id}/history")
     public ResponseEntity<List<IssueTicketHistory>> getTicketHistory(@PathVariable Integer id) {
         List<IssueTicketHistory> history = issueTicketHistoryRepository.findByTicketTicketIdOrderByChangedAtDesc(id);

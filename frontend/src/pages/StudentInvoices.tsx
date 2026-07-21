@@ -49,8 +49,8 @@ export const StudentInvoices = () => {
           <h2>Hóa đơn điện nước</h2>
           <div className="si-list">
             {invoices.map((inv, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className={`si-list-item ${selectedInv?.id === inv.id ? 'active' : ''}`}
                 onClick={() => setSelectedInv(inv)}
               >
@@ -97,12 +97,12 @@ export const StudentInvoices = () => {
                 </table>
 
                 <div className="si-section-title mt-6">
-                  <span className="si-icon-box elec">⚡</span> Tiền điện (Lũy tiến)
+                  <span className="si-icon-box elec">⚡</span> Tiền điện
                 </div>
                 <div className="si-readings-box">
-                  <div><span className="text-gray">CHỈ SỐ CŨ</span><br/><strong>1250</strong></div>
-                  <div><span className="text-gray">CHỈ SỐ MỚI</span><br/><strong>1320</strong></div>
-                  <div><span className="text-gray">TIÊU THỤ</span><br/><strong className="text-blue">70 kWh</strong></div>
+                  <div><span className="text-gray">CHỈ SỐ CŨ</span><br /><strong>1250</strong></div>
+                  <div><span className="text-gray">CHỈ SỐ MỚI</span><br /><strong>1320</strong></div>
+                  <div><span className="text-gray">TIÊU THỤ</span><br /><strong className="text-blue">70 kWh</strong></div>
                 </div>
                 <table className="si-table no-bg">
                   <tbody>

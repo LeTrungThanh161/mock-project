@@ -86,7 +86,7 @@ const Sidebar = () => {
       </div>
 
       {/* User Info */}
-      <div className="sidebar-user-info">
+      {/* <div className="sidebar-user-info">
         <div className="user-avatar">
           {(user?.fullName ?? 'U').charAt(0).toUpperCase()}
         </div>
@@ -94,7 +94,7 @@ const Sidebar = () => {
           <p className="user-name">{user?.fullName ?? 'Khách'}</p>
           <span className={ROLE_BADGE_CLASS[role]}>{ROLE_LABELS[role]}</span>
         </div>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <nav className="sidebar-nav">

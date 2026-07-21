@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/meter-readings")
+@RequestMapping("/api/meter-readings")
 @RequiredArgsConstructor
 public class MeterReadingController {
 

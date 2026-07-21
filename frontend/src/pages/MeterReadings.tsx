@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Filter, Save } from 'lucide-react';
 import './MeterReadings.css';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface Building {
   buildingId: number;
@@ -18,6 +19,15 @@ interface MeterReadingRecord {
   isFirstMonth?: boolean;
 }
 
+interface PricingTier {
+  tierId: number;
+  utilityType: string;
+  tierOrder: number;
+  fromUnit: number;
+  toUnit: number | null;
+  unitPrice: number;
+}
+
 interface UIDataRow {
   readingId: number;
   room: string;
@@ -30,6 +40,9 @@ interface UIDataRow {
 }
 
 export const MeterReadings = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
 
@@ -38,9 +51,11 @@ export const MeterReadings = () => {
 
   const [month, setMonth] = useState<string>('2026-06');
 
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
   const [readings, setReadings] = useState<UIDataRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [initialFetched, setInitialFetched] = useState(false);
 
   // Logic kiểm tra nếu chưa qua tháng hiện tại (selected > current month) thì không cho nhập
   const currentDate = new Date();
@@ -61,6 +76,13 @@ export const MeterReadings = () => {
         }
       })
       .catch(err => console.error("Failed to fetch buildings", err));
+      
+    // Fetch pricing tiers
+    api.get('/admin/pricing-tiers')
+      .then(res => {
+        if (res.data) setPricingTiers(res.data);
+      })
+      .catch(err => console.error("Failed to fetch pricing tiers", err));
   }, []);
 
   useEffect(() => {
@@ -80,7 +102,7 @@ export const MeterReadings = () => {
 
     // YYYY-MM -> YYYY-MM-01
     const dateParam = `${month}-01`;
-    let url = `/admin/meter-readings/filter?buildingId=${selectedBuilding}&month=${dateParam}`;
+    let url = `/meter-readings/filter?buildingId=${selectedBuilding}&month=${dateParam}`;
     if (selectedFloor !== '') {
       url += `&floorNumber=${selectedFloor}`;
     }
@@ -98,7 +120,7 @@ export const MeterReadings = () => {
             service: 'Electric',
             oldVal: item.electricStart,
             newVal: item.electricEnd === item.electricStart ? null : item.electricEnd,
-            usage: item.electricEnd === item.electricStart ? null : (item.electricEnd - item.electricStart),
+            usage: item.electricEnd === item.electricStart ? null : Math.round((item.electricEnd - item.electricStart) * 100) / 100,
             total: null, // Tạm tính có thể thêm logic
             isFirstMonth: !!item.isFirstMonth,
           });
@@ -109,7 +131,7 @@ export const MeterReadings = () => {
             service: 'Water',
             oldVal: item.waterStart,
             newVal: item.waterEnd === item.waterStart ? null : item.waterEnd,
-            usage: item.waterEnd === item.waterStart ? null : (item.waterEnd - item.waterStart),
+            usage: item.waterEnd === item.waterStart ? null : Math.round((item.waterEnd - item.waterStart) * 100) / 100,
             total: null,
             isFirstMonth: !!item.isFirstMonth,
           });
@@ -125,13 +147,21 @@ export const MeterReadings = () => {
       .finally(() => setLoading(false));
   };
 
+  useEffect(() => {
+    if (selectedBuilding !== '' && month !== '' && !initialFetched) {
+      fetchReadings();
+      setInitialFetched(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBuilding, month, initialFetched]);
+
   const handleInputChange = (index: number, valStr: string) => {
     const newVal = valStr === '' ? null : parseFloat(valStr);
     const newReadings = [...readings];
     const row = newReadings[index];
     row.newVal = newVal;
     if (newVal !== null) {
-      row.usage = newVal - row.oldVal;
+      row.usage = Math.round((newVal - row.oldVal) * 100) / 100;
     } else {
       row.usage = null;
     }
@@ -144,7 +174,7 @@ export const MeterReadings = () => {
     const row = newReadings[index];
     row.oldVal = newOldVal;
     if (row.newVal !== null) {
-      row.usage = row.newVal - row.oldVal;
+      row.usage = Math.round((row.newVal - row.oldVal) * 100) / 100;
     }
     setReadings(newReadings);
   };
@@ -177,7 +207,7 @@ export const MeterReadings = () => {
       return;
     }
 
-    api.put('/admin/meter-readings/bulk-update', payload)
+    api.put('/meter-readings/bulk-update', payload)
       .then(() => {
         alert("Lưu thành công");
         fetchReadings();
@@ -198,7 +228,29 @@ export const MeterReadings = () => {
     return pages;
   };
 
-  const totalElec = readings.filter(r => r.service === 'Electric').reduce((acc, r) => acc + (r.usage || 0), 0);
+  const calculateTotal = (usage: number, service: string) => {
+    const tiers = pricingTiers
+      .filter(t => t.utilityType === service)
+      .sort((a, b) => a.tierOrder - b.tierOrder);
+    if (!tiers.length) return 0;
+    
+    let remaining = usage;
+    let total = 0;
+    
+    for (const tier of tiers) {
+      if (remaining <= 0) break;
+      const capacity = tier.toUnit !== null 
+        ? (tier.fromUnit === 0 ? tier.toUnit : tier.toUnit - tier.fromUnit + 1) 
+        : Infinity;
+      const amountToCharge = Math.min(remaining, capacity);
+      total += amountToCharge * tier.unitPrice;
+      remaining -= amountToCharge;
+    }
+    return Math.round(total);
+  };
+
+  const totalElec = Math.round(readings.filter(r => r.service === 'Electric').reduce((acc, r) => acc + (r.usage || 0), 0) * 100) / 100;
+  const totalWater = Math.round(readings.filter(r => r.service === 'Water').reduce((acc, r) => acc + (r.usage || 0), 0) * 100) / 100;
   const totalRoomsWithData = new Set(readings.filter(r => r.newVal !== null).map(r => r.room)).size;
   const totalRooms = new Set(readings.map(r => r.room)).size;
 
@@ -272,7 +324,7 @@ export const MeterReadings = () => {
                         onChange={e => handleOldValChange(actualIndex, e.target.value)}
                         placeholder="Chỉ số đầu"
                         className="mr-input-newval"
-                        disabled={isLocked}
+                        disabled={isLocked || isAdmin}
                         style={{ width: '80px' }}
                       />
                     ) : (
@@ -286,11 +338,11 @@ export const MeterReadings = () => {
                       onChange={e => handleInputChange(actualIndex, e.target.value)}
                       placeholder="Nhập chỉ số"
                       className="mr-input-newval"
-                      disabled={isLocked}
+                      disabled={isLocked || isAdmin}
                     />
                   </td>
                   <td className="mr-usage">{r.usage !== null ? `${r.usage} ${r.service === 'Electric' ? 'kWh' : 'm³'}` : '--'}</td>
-                  <td className="mr-total text-gray">{r.total !== null ? `${r.total.toLocaleString()} đ` : '--'}</td>
+                  <td className="mr-total text-gray">{r.usage !== null ? `${calculateTotal(r.usage, r.service).toLocaleString('vi-VN')} đ` : '--'}</td>
                 </tr>
               );
             }) : (
@@ -320,9 +372,11 @@ export const MeterReadings = () => {
               </div>
             )}
           </div>
-          <button className="mr-btn-save" onClick={handleSaveAll} disabled={saving || readings.length === 0}>
-            <Save size={18} /> {saving ? 'Đang lưu...' : 'Lưu toàn bộ'}
-          </button>
+          {!isAdmin && (
+            <button className="mr-btn-save" onClick={handleSaveAll} disabled={saving || readings.length === 0}>
+              <Save size={18} /> {saving ? 'Đang lưu...' : 'Lưu toàn bộ'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -342,10 +396,10 @@ export const MeterReadings = () => {
           </div>
         </div>
         <div className="mr-stat-card">
-          <div className="mr-stat-icon warn">!</div>
+          <div className="mr-stat-icon" style={{ background: '#E3F2FD', color: '#2196F3', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>💧</div>
           <div>
-            <p >CẢNH BÁO BẤT THƯỜNG</p>
-            <h4 style={{ color: 'gray' }}>0 Phòng</h4>
+            <p>TỔNG NƯỚC (TẠM TÍNH)</p>
+            <h4 style={{ color: 'gray' }}>{totalWater} m³</h4>
           </div>
         </div>
       </div>

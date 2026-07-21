@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Bell, Download, Filter, Edit, Trash2 } from 'lucide-react';
 import './PricingTiers.css';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface PricingTier {
   tierId: number;
@@ -13,6 +14,9 @@ interface PricingTier {
 }
 
 export const PricingTiers = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const [tiers, setTiers] = useState<PricingTier[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -111,87 +115,89 @@ export const PricingTiers = () => {
   return (
     <div className="pt-page-container">
       <div className="pt-header">
-        <h2>Dorm Manager / <span className="pt-breadcrumb">Cấu hình Giá Lũy tiến</span></h2>
+        <h2>Cấu hình Giá Lũy tiến</h2>
       </div>
 
       <div className="pt-content">
-        <div className="pt-form-card">
-          <div className="pt-form-title">
-            <span className="pt-icon-settings"></span> {editingId ? 'Sửa Bậc Giá' : 'Thêm Bậc Giá Mới'}
-          </div>
+        {isAdmin && (
+          <div className="pt-form-card">
+            <div className="pt-form-title">
+              <span className="pt-icon-settings"></span> {editingId ? 'Sửa Bậc Giá' : 'Thêm Bậc Giá Mới'}
+            </div>
 
-          <div className="pt-form-group">
-            <label>Loại Dịch vụ</label>
-            <select
-              value={formData.utilityType}
-              onChange={(e) => handleInputChange('utilityType', e.target.value)}
-            >
-              <option value="Electric">Điện (Electricity)</option>
-              <option value="Water">Nước (Water)</option>
-            </select>
-          </div>
-
-          <div className="pt-form-group">
-            <label>Bậc số</label>
-            <input
-              type="number"
-              placeholder="Ví dụ: 1"
-              value={formData.tierOrder || ''}
-              onChange={(e) => handleInputChange('tierOrder', parseInt(e.target.value) || 0)}
-            />
-          </div>
-
-          <div className="pt-form-row">
             <div className="pt-form-group">
-              <label>Từ (kWh/m³)</label>
-              <input
-                type="number"
-                value={formData.fromUnit ?? 0}
-                onChange={(e) => handleInputChange('fromUnit', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="pt-form-group">
-              <label>Đến (kWh/m³)</label>
-              <input
-                type="number"
-                placeholder="Để trống nếu không giới hạn"
-                value={formData.toUnit === null ? '' : (formData.toUnit ?? 50)}
-                onChange={(e) => handleInputChange('toUnit', e.target.value === '' ? null : parseFloat(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <div className="pt-form-group">
-            <label>Đơn giá (VNĐ)</label>
-            <div className="pt-input-suffix">
-              <input
-                type="number"
-                value={formData.unitPrice ?? 1800}
-                onChange={(e) => handleInputChange('unitPrice', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-              />
-              <span>VNĐ</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="pt-btn-save" onClick={handleSave} disabled={loading}>
-              {editingId ? 'Cập nhật cấu hình' : 'Lưu cấu hình'}
-            </button>
-            {editingId && (
-              <button
-                className="pt-btn-cancel"
-                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' }}
-                onClick={() => {
-                  setEditingId(null);
-                  setFormData({ utilityType: 'Electric', tierOrder: 1, fromUnit: 0, toUnit: 50, unitPrice: 1800 });
-                }}
+              <label>Loại Dịch vụ</label>
+              <select
+                value={formData.utilityType}
+                onChange={(e) => handleInputChange('utilityType', e.target.value)}
               >
-                Hủy
+                <option value="Electric">Điện (Electricity)</option>
+                <option value="Water">Nước (Water)</option>
+              </select>
+            </div>
+
+            <div className="pt-form-group">
+              <label>Bậc số</label>
+              <input
+                type="number"
+                placeholder="Ví dụ: 1"
+                value={formData.tierOrder || ''}
+                onChange={(e) => handleInputChange('tierOrder', parseInt(e.target.value) || 0)}
+              />
+            </div>
+
+            <div className="pt-form-row">
+              <div className="pt-form-group">
+                <label>Từ (kWh/m³)</label>
+                <input
+                  type="number"
+                  value={formData.fromUnit ?? 0}
+                  onChange={(e) => handleInputChange('fromUnit', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                />
+              </div>
+              <div className="pt-form-group">
+                <label>Đến (kWh/m³)</label>
+                <input
+                  type="number"
+                  placeholder="Để trống nếu không giới hạn"
+                  value={formData.toUnit === null ? '' : (formData.toUnit ?? 50)}
+                  onChange={(e) => handleInputChange('toUnit', e.target.value === '' ? null : parseFloat(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="pt-form-group">
+              <label>Đơn giá (VNĐ)</label>
+              <div className="pt-input-suffix">
+                <input
+                  type="number"
+                  value={formData.unitPrice ?? 1800}
+                  onChange={(e) => handleInputChange('unitPrice', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                />
+                <span>VNĐ</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="pt-btn-save" onClick={handleSave} disabled={loading}>
+                {editingId ? 'Cập nhật cấu hình' : 'Lưu cấu hình'}
               </button>
-            )}
+              {editingId && (
+                <button
+                  className="pt-btn-cancel"
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' }}
+                  onClick={() => {
+                    setEditingId(null);
+                    setFormData({ utilityType: 'Electric', tierOrder: 1, fromUnit: 0, toUnit: 50, unitPrice: 1800 });
+                  }}
+                >
+                  Hủy
+                </button>
+              )}
+            </div>
+            {/* <p className="pt-note">* Thay đổi sẽ áp dụng cho kỳ thanh toán tiếp theo. Vui lòng kiểm tra kỹ phạm vi và đơn giá.</p> */}
           </div>
-          <p className="pt-note">* Thay đổi sẽ áp dụng cho kỳ thanh toán tiếp theo. Vui lòng kiểm tra kỹ phạm vi và đơn giá.</p>
-        </div>
+        )}
 
         <div className="pt-table-card">
           <div className="pt-table-header">
@@ -212,7 +218,7 @@ export const PricingTiers = () => {
                 <th style={{ color: 'white' }}>TÊN BẬC</th>
                 <th style={{ color: 'white' }}>PHẠM VI (KWH hoặc M³)</th>
                 <th style={{ color: 'white' }}>ĐƠN GIÁ</th>
-                <th style={{ color: 'white' }}>HÀNH ĐỘNG</th>
+                {isAdmin && <th style={{ color: 'white' }}>HÀNH ĐỘNG</th>}
               </tr>
             </thead>
             <tbody>
@@ -234,24 +240,26 @@ export const PricingTiers = () => {
                     <strong>{tier.unitPrice.toLocaleString('vi-VN')}</strong><br />
                     <small>VNĐ</small>
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4CAF50' }}
-                        onClick={() => handleEdit(tier)}
-                        title="Sửa"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#F44336' }}
-                        onClick={() => handleDelete(tier.tierId)}
-                        title="Xóa"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4CAF50' }}
+                          onClick={() => handleEdit(tier)}
+                          title="Sửa"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#F44336' }}
+                          onClick={() => handleDelete(tier.tierId)}
+                          title="Xóa"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               )) : (
                 <tr>
