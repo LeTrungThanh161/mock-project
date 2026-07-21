@@ -1,11 +1,11 @@
 -- Mock Data for 5 new screens
 -- 1. Pricing Tiers
 INSERT INTO PricingTier (utilityType, tierOrder, fromUnit, toUnit, unitPrice) VALUES
-('ELECTRICITY', 1, 0, 50, 1678),
-('ELECTRICITY', 2, 51, 100, 1734),
-('ELECTRICITY', 3, 101, 200, 2014),
-('WATER', 1, 0, 10, 5973),
-('WATER', 2, 11, 20, 7052);
+('Electric', 1, 0, 50, 1678),
+('Electric', 2, 51, 100, 1734),
+('Electric', 3, 101, 200, 2014),
+('Water', 1, 0, 10, 5973),
+('Water', 2, 11, 20, 7052);
 
 -- 2. Technicians
 INSERT INTO Technician (fullName, phone, specialization, status) VALUES

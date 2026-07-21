@@ -1,27 +1,35 @@
 package com.dormitory.management.modules.finance.controller;
 
+import com.dormitory.management.modules.finance.dto.MeterReadingBulkUpdateRequest;
 import com.dormitory.management.modules.finance.entity.MeterReading;
-import com.dormitory.management.modules.finance.repository.MeterReadingRepository;
+import com.dormitory.management.modules.finance.service.MeterReadingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/meter-readings")
+@RequestMapping("/api/admin/meter-readings")
 @RequiredArgsConstructor
 public class MeterReadingController {
 
-    private final MeterReadingRepository meterReadingRepository;
+    private final MeterReadingService meterReadingService;
 
-    @GetMapping
-    public ResponseEntity<List<MeterReading>> getAllMeterReadings() {
-        return ResponseEntity.ok(meterReadingRepository.findAll());
+    @GetMapping("/filter")
+    public ResponseEntity<List<com.dormitory.management.modules.finance.dto.MeterReadingResponse>> getMeterReadings(
+            @RequestParam Integer buildingId,
+            @RequestParam(required = false) Integer floorNumber,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month) {
+        return ResponseEntity.ok(meterReadingService.getOrGenerateMeterReadings(buildingId, floorNumber, month));
     }
 
-    @PostMapping
-    public ResponseEntity<MeterReading> saveMeterReading(@RequestBody MeterReading reading) {
-        return ResponseEntity.ok(meterReadingRepository.save(reading));
+    @PutMapping("/bulk-update")
+    public ResponseEntity<Void> bulkUpdateMeterReadings(@RequestBody List<MeterReadingBulkUpdateRequest> requests) {
+        meterReadingService.bulkUpdateReadings(requests);
+        return ResponseEntity.ok().build();
     }
 }
+

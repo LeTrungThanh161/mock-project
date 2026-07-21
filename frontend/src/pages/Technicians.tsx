@@ -77,26 +77,26 @@ export const Technicians = () => {
         <table className="tech-table">
           <thead>
             <tr>
-              <th>HỌ VÀ TÊN</th>
-              <th>SỐ ĐIỆN THOẠI</th>
-              <th>CHUYÊN MÔN</th>
-              <th>TRẠNG THÁI</th>
-              <th>THAO TÁC</th>
+              <th style={{ color: 'white' }}>HỌ VÀ TÊN</th>
+              <th style={{ color: 'white' }}>SỐ ĐIỆN THOẠI</th>
+              <th style={{ color: 'white' }}>CHUYÊN MÔN</th>
+              <th style={{ color: 'white' }}>TRẠNG THÁI</th>
+              <th style={{ color: 'white' }}>THAO TÁC</th>
             </tr>
           </thead>
           <tbody>
             {techs.map((t, i) => (
               <tr key={i}>
-                <td className="tech-name-cell">
-                  <div className="tech-avatar">{t.name.substring(0,2).toUpperCase()}</div>
+                <td className="tech-name-cell" style={{ color: 'gray' }}>
+                  <div className="tech-avatar">{t.name.substring(0, 2).toUpperCase()}</div>
                   <div>
                     <strong>{t.name}</strong>
                     <div className="tech-id">Mã NV: {t.id}</div>
                   </div>
                 </td>
-                <td>{t.phone}</td>
-                <td><span className={`tech-spec-badge ${t.spec === 'Điện'?'blue':t.spec==='Nước'?'cyan':t.spec==='Net'?'purple':'orange'}`}>{t.spec}</span></td>
-                <td>
+                <td style={{ color: 'gray' }}>{t.phone}</td>
+                <td><span className={`tech-spec-badge ${t.spec === 'Điện' ? 'blue' : t.spec === 'Nước' ? 'cyan' : t.spec === 'Net' ? 'purple' : 'orange'}`}>{t.spec}</span></td>
+                <td style={{ color: 'gray' }}>
                   <span className={`tech-status-dot ${t.status === 'Sẵn Sàng' ? 'green' : 'red'}`}></span>
                   {t.status}
                 </td>

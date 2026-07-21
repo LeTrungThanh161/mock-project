@@ -1,8 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-{/* Bỏ dòng dưới khi production */}
-import DevRoleSwitcher from './DevRoleSwitcher'
 
 const Layout = () => {
   return (
@@ -14,8 +12,6 @@ const Layout = () => {
           <Outlet />
         </main>
       </div>
-      {/* Bỏ dòng dưới khi production */}
-      <DevRoleSwitcher/>
     </div>
   );
 };

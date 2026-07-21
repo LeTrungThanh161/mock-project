@@ -30,7 +30,7 @@ export const IssueTickets = () => {
         <div className="tk-stat-card">
           <p>ĐANG XỬ LÝ</p>
           <h4>14</h4>
-          <div className="tk-progress-bar"><div className="tk-progress" style={{width:'40%'}}></div></div>
+          <div className="tk-progress-bar"><div className="tk-progress" style={{ width: '40%' }}></div></div>
         </div>
         <div className="tk-stat-card">
           <p>ƯU TIÊN CAO</p>
@@ -59,31 +59,31 @@ export const IssueTickets = () => {
         <table className="tk-table">
           <thead>
             <tr>
-              <th>MÃ SỐ</th>
-              <th>PHÒNG</th>
-              <th>LOẠI SỰ CỐ</th>
-              <th>NỘI DUNG TÓM TẮT</th>
-              <th>MỨC ĐỘ</th>
-              <th>TRẠNG THÁI</th>
-              <th>HÀNH ĐỘNG</th>
+              <th style={{ color: 'white' }}>MÃ SỐ</th>
+              <th style={{ color: 'white' }}>PHÒNG</th>
+              <th style={{ color: 'white' }}>LOẠI SỰ CỐ</th>
+              <th style={{ color: 'white' }}>NỘI DUNG TÓM TẮT</th>
+              <th style={{ color: 'white' }}>MỨC ĐỘ</th>
+              <th style={{ color: 'white' }}>TRẠNG THÁI</th>
+              <th style={{ color: 'white' }}>HÀNH ĐỘNG</th>
             </tr>
           </thead>
           <tbody>
             {tickets.map((t, i) => (
               <tr key={i}>
-                <td><strong>{t.id}</strong></td>
-                <td>{t.room}</td>
-                <td className="tk-type-cell">
+                <td style={{ color: 'gray' }}><strong>{t.id}</strong></td>
+                <td style={{ color: 'gray' }}>{t.room}</td>
+                <td className="tk-type-cell" style={{ color: 'gray' }}>
                   {t.type.includes('Điện') ? <span className="tk-icon elec">⚡</span> : t.type.includes('Nước') ? <span className="tk-icon water">💧</span> : <span className="tk-icon net">📡</span>}
                   {t.type}
                 </td>
-                <td>{t.desc}</td>
-                <td>
+                <td style={{ color: 'gray' }}>{t.desc}</td>
+                <td style={{ color: 'gray' }}>
                   <span className={`tk-priority-badge ${t.priority === 'Khẩn cấp' ? 'danger' : t.priority === 'Trung bình' ? 'warning' : 'normal'}`}>
                     {t.priority}
                   </span>
                 </td>
-                <td>
+                <td style={{ color: 'gray' }}>
                   <span className={`tk-status-dot ${t.status === 'Chờ xử lý' ? 'red' : t.status === 'Đã gán việc' ? 'orange' : 'blue'}`}></span>
                   {t.status}
                 </td>

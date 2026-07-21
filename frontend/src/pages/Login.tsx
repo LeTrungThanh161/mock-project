@@ -4,8 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import logoImg from '../assets/logo.jpg';
 import './Login.css';
-{/* Bỏ dòng dưới khi production */}
-import DevLoginHint from '../components/DevRoleSwitcher';
 
 const Login = () => {
   const { login } = useAuth();
@@ -109,8 +107,6 @@ const Login = () => {
             Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
           </p>
         </form>
-        {/* Bỏ dòng dưới khi production */}
-        <DevLoginHint setUsername={setUsername} setPassword={setPassword} /> 
       </div>
     </div>
   );

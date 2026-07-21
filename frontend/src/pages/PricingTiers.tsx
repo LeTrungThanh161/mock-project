@@ -8,17 +8,17 @@ interface PricingTier {
   utilityType: string;
   tierOrder: number;
   fromUnit: number;
-  toUnit: number;
+  toUnit: number | null;
   unitPrice: number;
 }
 
 export const PricingTiers = () => {
   const [tiers, setTiers] = useState<PricingTier[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState<Partial<PricingTier>>({
-    utilityType: 'ELECTRICITY',
+    utilityType: 'Electric',
     tierOrder: 1,
     fromUnit: 0,
     toUnit: 50,
@@ -47,7 +47,7 @@ export const PricingTiers = () => {
     fetchTiers();
   }, []);
 
-  const handleInputChange = (field: keyof PricingTier, value: string | number) => {
+  const handleInputChange = (field: keyof PricingTier, value: string | number | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -122,21 +122,21 @@ export const PricingTiers = () => {
 
           <div className="pt-form-group">
             <label>Loại Dịch vụ</label>
-            <select 
-              value={formData.utilityType} 
+            <select
+              value={formData.utilityType}
               onChange={(e) => handleInputChange('utilityType', e.target.value)}
             >
-              <option value="ELECTRICITY">Điện (Electricity)</option>
-              <option value="WATER">Nước (Water)</option>
+              <option value="Electric">Điện (Electricity)</option>
+              <option value="Water">Nước (Water)</option>
             </select>
           </div>
 
           <div className="pt-form-group">
             <label>Bậc số</label>
-            <input 
-              type="number" 
-              placeholder="Ví dụ: 1" 
-              value={formData.tierOrder || ''} 
+            <input
+              type="number"
+              placeholder="Ví dụ: 1"
+              value={formData.tierOrder || ''}
               onChange={(e) => handleInputChange('tierOrder', parseInt(e.target.value) || 0)}
             />
           </div>
@@ -144,18 +144,19 @@ export const PricingTiers = () => {
           <div className="pt-form-row">
             <div className="pt-form-group">
               <label>Từ (kWh/m³)</label>
-              <input 
-                type="number" 
-                value={formData.fromUnit ?? 0} 
-                onChange={(e) => handleInputChange('fromUnit', parseInt(e.target.value) || 0)}
+              <input
+                type="number"
+                value={formData.fromUnit ?? 0}
+                onChange={(e) => handleInputChange('fromUnit', e.target.value === '' ? 0 : parseFloat(e.target.value))}
               />
             </div>
             <div className="pt-form-group">
               <label>Đến (kWh/m³)</label>
-              <input 
-                type="number" 
-                value={formData.toUnit ?? 50} 
-                onChange={(e) => handleInputChange('toUnit', parseInt(e.target.value) || 0)}
+              <input
+                type="number"
+                placeholder="Để trống nếu không giới hạn"
+                value={formData.toUnit === null ? '' : (formData.toUnit ?? 50)}
+                onChange={(e) => handleInputChange('toUnit', e.target.value === '' ? null : parseFloat(e.target.value))}
               />
             </div>
           </div>
@@ -163,10 +164,10 @@ export const PricingTiers = () => {
           <div className="pt-form-group">
             <label>Đơn giá (VNĐ)</label>
             <div className="pt-input-suffix">
-              <input 
-                type="number" 
-                value={formData.unitPrice ?? 1800} 
-                onChange={(e) => handleInputChange('unitPrice', parseInt(e.target.value) || 0)}
+              <input
+                type="number"
+                value={formData.unitPrice ?? 1800}
+                onChange={(e) => handleInputChange('unitPrice', e.target.value === '' ? 0 : parseFloat(e.target.value))}
               />
               <span>VNĐ</span>
             </div>
@@ -177,12 +178,12 @@ export const PricingTiers = () => {
               {editingId ? 'Cập nhật cấu hình' : 'Lưu cấu hình'}
             </button>
             {editingId && (
-              <button 
-                className="pt-btn-cancel" 
+              <button
+                className="pt-btn-cancel"
                 style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' }}
                 onClick={() => {
                   setEditingId(null);
-                  setFormData({ utilityType: 'ELECTRICITY', tierOrder: 1, fromUnit: 0, toUnit: 50, unitPrice: 1800 });
+                  setFormData({ utilityType: 'Electric', tierOrder: 1, fromUnit: 0, toUnit: 50, unitPrice: 1800 });
                 }}
               >
                 Hủy
@@ -207,11 +208,11 @@ export const PricingTiers = () => {
           <table className="pt-table">
             <thead>
               <tr>
-                <th>LOẠI DỊCH VỤ</th>
-                <th>TÊN BẬC</th>
-                <th>PHẠM VI (KWH/M³)</th>
-                <th>ĐƠN GIÁ</th>
-                <th>HÀNH ĐỘNG</th>
+                <th style={{ color: 'white' }}>LOẠI DỊCH VỤ</th>
+                <th style={{ color: 'white' }}>TÊN BẬC</th>
+                <th style={{ color: 'white' }}>PHẠM VI (KWH hoặc M³)</th>
+                <th style={{ color: 'white' }}>ĐƠN GIÁ</th>
+                <th style={{ color: 'white' }}>HÀNH ĐỘNG</th>
               </tr>
             </thead>
             <tbody>
@@ -219,28 +220,30 @@ export const PricingTiers = () => {
                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>Đang tải...</td></tr>
               ) : currentTiers.length > 0 ? currentTiers.map((tier) => (
                 <tr key={tier.tierId}>
-                  <td className="pt-type-cell text-gray">
-                    <span className={`pt-type-icon ${tier.utilityType === 'ELECTRICITY' ? 'elec' : 'water'}`}>
-                      {tier.utilityType === 'ELECTRICITY' ? '⚡' : '💧'}
-                    </span>
-                    {tier.utilityType === 'ELECTRICITY' ? 'Điện sinh hoạt' : 'Nước sinh hoạt'}
+                  <td className="text-gray">
+                    <div className="pt-type-cell">
+                      <span className={`pt-type-icon ${tier.utilityType === 'Electric' ? 'elec' : 'water'}`}>
+                        {tier.utilityType === 'Electric' ? '⚡' : '💧'}
+                      </span>
+                      {tier.utilityType === 'Electric' ? 'Điện sinh hoạt' : 'Nước sinh hoạt'}
+                    </div>
                   </td>
                   <td className="text-gray">Bậc {tier.tierOrder}</td>
-                  <td className="text-gray"><span className="pt-range-badge">{tier.fromUnit} - {tier.toUnit}</span></td>
+                  <td className="text-gray"><span className="pt-range-badge">{tier.fromUnit} - {tier.toUnit !== null ? tier.toUnit : 'Trở lên'}</span></td>
                   <td className="text-gray">
                     <strong>{tier.unitPrice.toLocaleString('vi-VN')}</strong><br />
                     <small>VNĐ</small>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
+                      <button
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4CAF50' }}
                         onClick={() => handleEdit(tier)}
                         title="Sửa"
                       >
                         <Edit size={18} />
                       </button>
-                      <button 
+                      <button
                         style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#F44336' }}
                         onClick={() => handleDelete(tier.tierId)}
                         title="Xóa"
@@ -262,14 +265,14 @@ export const PricingTiers = () => {
             <div className="pt-pagination">
               <span>Đang hiển thị {currentTiers.length} trên {tiers.length} bản ghi</span>
               <div className="pt-page-controls">
-                <button 
+                <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
                   &lt;
                 </button>
                 {getPageNumbers().map(pageNum => (
-                  <button 
+                  <button
                     key={pageNum}
                     className={pageNum === currentPage ? 'active' : ''}
                     onClick={() => setCurrentPage(pageNum)}
@@ -277,7 +280,7 @@ export const PricingTiers = () => {
                     {pageNum}
                   </button>
                 ))}
-                <button 
+                <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >

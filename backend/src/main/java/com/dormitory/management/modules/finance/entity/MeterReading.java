@@ -60,4 +60,7 @@ public class MeterReading {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime recordedAt;
+
+    @Transient
+    private Boolean isFirstMonth;
 }

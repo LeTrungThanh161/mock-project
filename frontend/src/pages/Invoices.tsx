@@ -73,13 +73,13 @@ export const Invoices = () => {
         <table className="inv-table">
           <thead>
             <tr>
-              <th>MÃ HÓA ĐƠN</th>
-              <th>PHÒNG</th>
-              <th>KỲ THANH TOÁN</th>
-              <th>TỔNG TIỀN (VNĐ)</th>
-              <th>HẠN CHÓT</th>
-              <th>TRẠNG THÁI</th>
-              <th>HÀNH ĐỘNG</th>
+              <th style={{ color: 'white' }}>MÃ HÓA ĐƠN</th>
+              <th style={{ color: 'white' }}>PHÒNG</th>
+              <th style={{ color: 'white' }}>KỲ THANH TOÁN</th>
+              <th style={{ color: 'white' }}>TỔNG TIỀN (VNĐ)</th>
+              <th style={{ color: 'white' }}>HẠN CHÓT</th>
+              <th style={{ color: 'white' }}>TRẠNG THÁI</th>
+              <th style={{ color: 'white' }}>HÀNH ĐỘNG</th>
             </tr>
           </thead>
           <tbody>
@@ -99,8 +99,8 @@ export const Invoices = () => {
                   {inv.status !== 'Đã thanh toán' && (
                     <button className="inv-btn-primary">{inv.status === 'Quá hạn' ? 'Nhắc nợ' : 'Thu tiền'}</button>
                   )}
-                  <button className="inv-btn-icon"><Eye size={16}/></button>
-                  {inv.status === 'Đã thanh toán' && <button className="inv-btn-icon"><Printer size={16}/></button>}
+                  <button className="inv-btn-icon"><Eye size={16} /></button>
+                  {inv.status === 'Đã thanh toán' && <button className="inv-btn-icon"><Printer size={16} /></button>}
                 </td>
               </tr>
             ))}

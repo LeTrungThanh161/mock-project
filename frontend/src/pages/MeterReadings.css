@@ -96,6 +96,7 @@
   padding: 12px 20px;
   border-bottom: 1px solid #e2e8f0;
   font-size: 14px;
+  vertical-align: middle;
 }
 
 .mr-type-cell {
@@ -108,17 +109,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
 }
 
 .mr-icon.elec {
-  color: #3b82f6;
+  background: #fef08a;
+  color: #ca8a04;
 }
 
 .mr-icon.water {
-  color: #0ea5e9;
+  background: #bfdbfe;
+  color: #2563eb;
 }
 
 .mr-input-newval {
@@ -142,6 +145,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.mr-pagination-info-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.mr-page-controls {
+  display: flex;
+}
+
+.mr-page-controls button {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  margin-left: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mr-page-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.mr-page-controls button.active {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
 }
 
 .mr-btn-save {

@@ -4,10 +4,15 @@ import com.dormitory.management.modules.infrastructure.dto.BuildingRequest;
 import com.dormitory.management.modules.infrastructure.dto.BuildingResponse;
 import com.dormitory.management.modules.infrastructure.entity.Building;
 import com.dormitory.management.modules.infrastructure.repository.BuildingRepository;
+import com.dormitory.management.modules.auth.entity.Staff;
+import com.dormitory.management.modules.auth.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,8 +21,21 @@ import java.util.stream.Collectors;
 public class BuildingService {
 
     private final BuildingRepository buildingRepository;
+    private final StaffRepository staffRepository;
 
     public List<BuildingResponse> getAllBuildings() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String email = auth.getName();
+            if (auth.getPrincipal() instanceof com.dormitory.management.modules.auth.entity.Account) {
+                email = ((com.dormitory.management.modules.auth.entity.Account) auth.getPrincipal()).getEmail();
+            }
+            Staff staff = staffRepository.findByAccount_Email(email).orElse(null);
+            if (staff != null && staff.getBuilding() != null) {
+                return Collections.singletonList(mapToResponse(staff.getBuilding()));
+            }
+        }
+
         return buildingRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

@@ -113,6 +113,10 @@ public class RoomService {
         }
         roomRepository.deleteById(id);
     }
+    
+    public List<Integer> getDistinctFloorNumbers(Integer buildingId) {
+        return roomRepository.findDistinctFloorNumbersByBuildingId(buildingId);
+    }
 
     private RoomResponse mapToResponse(Room room) {
         return RoomResponse.builder()

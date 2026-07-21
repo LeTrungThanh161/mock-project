@@ -13,4 +13,6 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
 
     @Query("SELECT s FROM Staff s WHERE s.account.accountId = :accountId")
     Optional<Staff> findByAccountId(@Param("accountId") Integer accountId);
+
+    Optional<Staff> findByAccount_Email(String email);
 }
