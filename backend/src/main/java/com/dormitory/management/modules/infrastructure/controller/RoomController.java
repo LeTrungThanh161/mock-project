@@ -51,4 +51,10 @@ public class RoomController {
         roomService.deleteRoom(id);
         return ResponseEntity.noContent().build();
     }
+    
+    // Lấy danh sách các tầng của một tòa nhà
+    @GetMapping("/floors")
+    public ResponseEntity<List<Integer>> getFloorsByBuildingId(@RequestParam Integer buildingId) {
+        return ResponseEntity.ok(roomService.getDistinctFloorNumbers(buildingId));
+    }
 }

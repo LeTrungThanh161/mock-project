@@ -7,12 +7,29 @@ import Dashboard from './pages/Dashboard';
 import Helpdesk from './pages/Helpdesk';
 import Utilities from './pages/Utilities';
 import StudentProfile from './pages/StudentProfile';
+import { PricingTiers } from './pages/PricingTiers';
+import { MeterReadings } from './pages/MeterReadings';
+import { Invoices } from './pages/Invoices';
+import { Technicians } from './pages/Technicians';
+import { IssueTickets } from './pages/IssueTickets';
+import { StudentInvoices } from './pages/StudentInvoices';
+import { StudentHelpdesk } from './pages/StudentHelpdesk';
 import './App.css';
 
 // Guard: Nếu chưa đăng nhập → chuyển về /login
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   return user ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+const RoleBasedInvoices = () => {
+  const { user } = useAuth();
+  return user?.role === 'STUDENT' ? <StudentInvoices /> : <Invoices />;
+};
+
+const RoleBasedHelpdesk = () => {
+  const { user } = useAuth();
+  return user?.role === 'STUDENT' ? <StudentHelpdesk /> : <IssueTickets />;
 };
 
 function AppRoutes() {
@@ -34,15 +51,18 @@ function AppRoutes() {
         <Route index element={<Navigate to="/profile" replace />} />
         <Route path="profile"           element={<StudentProfile />} />
         <Route path="dashboard"         element={<Dashboard />} />
-        <Route path="helpdesk"          element={<Helpdesk />} />
+        <Route path="helpdesk"          element={<RoleBasedHelpdesk />} />
         <Route path="utilities"         element={<Utilities />} />
+        <Route path="pricing-tiers"     element={<PricingTiers />} />
+        <Route path="meter-readings"    element={<MeterReadings />} />
+        <Route path="technicians"       element={<Technicians />} />
         {/* Placeholder routes */}
         <Route path="buildings"         element={<Dashboard />} />
         <Route path="students"          element={<Dashboard />} />
         <Route path="applications"      element={<Dashboard />} />
         <Route path="contracts"         element={<Dashboard />} />
         <Route path="absences"          element={<Dashboard />} />
-        <Route path="invoices"          element={<Dashboard />} />
+        <Route path="invoices"          element={<RoleBasedInvoices />} />
         <Route path="room-registration" element={<Dashboard />} />
       </Route>
     </Routes>

@@ -33,8 +33,8 @@ public class UtilityService {
     @Transactional
     public void generateInvoicesForMonth(LocalDate billingMonth, Integer staffId) {
         List<MeterReading> readings = meterReadingRepository.findByBillingMonth(billingMonth);
-        List<PricingTier> electricTiers = pricingTierRepository.findByUtilityTypeOrderByTierOrderAsc(UtilityType.ELECTRIC);
-        List<PricingTier> waterTiers = pricingTierRepository.findByUtilityTypeOrderByTierOrderAsc(UtilityType.WATER);
+        List<PricingTier> electricTiers = pricingTierRepository.findByUtilityTypeOrderByTierOrderAsc(UtilityType.Electric);
+        List<PricingTier> waterTiers = pricingTierRepository.findByUtilityTypeOrderByTierOrderAsc(UtilityType.Water);
 
         Staff staff = new Staff();
         staff.setStaffId(staffId);
