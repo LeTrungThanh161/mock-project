@@ -49,7 +49,7 @@ public class TemporaryAbsenceService {
             throw new IllegalArgumentException("Cannot submit absence for another student's contract");
         }
         
-        if (contract.getStatus() != ContractStatus.ACTIVE) {
+        if (contract.getStatus() != ContractStatus.Active) {
             throw new IllegalArgumentException("Contract is not active");
         }
 
@@ -59,7 +59,7 @@ public class TemporaryAbsenceService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .reason(request.getReason())
-                .status(ApplicationStatus.PENDING)
+                .status(ApplicationStatus.Pending)
                 .build();
 
         TemporaryAbsence savedAbsence = absenceRepository.save(absence);
@@ -71,11 +71,11 @@ public class TemporaryAbsenceService {
         TemporaryAbsence absence = absenceRepository.findById(absenceId)
                 .orElseThrow(() -> new IllegalArgumentException("Absence not found"));
 
-        if (absence.getStatus() != ApplicationStatus.PENDING) {
+        if (absence.getStatus() != ApplicationStatus.Pending) {
             throw new IllegalArgumentException("Can only approve PENDING absences");
         }
 
-        absence.setStatus(ApplicationStatus.APPROVED);
+        absence.setStatus(ApplicationStatus.Approved);
         absenceRepository.save(absence);
         return mapToResponse(absence);
     }

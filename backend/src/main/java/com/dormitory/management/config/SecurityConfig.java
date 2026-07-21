@@ -209,7 +209,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 // Thứ tự filter quan trọng: JWT xác thực trước → RLS set context sau
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                 .addFilterAfter(rlsContextFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(rlsContextFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

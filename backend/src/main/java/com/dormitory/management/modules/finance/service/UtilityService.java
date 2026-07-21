@@ -59,7 +59,7 @@ public class UtilityService {
                     .waterFee(waterFee)
                     .internetFee(internetFee)
                     .dueDate(billingMonth.plusMonths(1).withDayOfMonth(5))
-                    .paymentStatus(PaymentStatus.UNPAID)
+                    .paymentStatus(PaymentStatus.Unpaid)
                     .generatedByStaff(staff)
                     .build();
 

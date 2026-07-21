@@ -67,7 +67,7 @@ public class RoomApplicationService {
                 .student(student)
                 .room(room)
                 .building(room.getBuilding())
-                .status(ApplicationStatus.PENDING)
+                .status(ApplicationStatus.Pending)
                 .note(request.getNote())
                 .build();
 
@@ -80,7 +80,7 @@ public class RoomApplicationService {
         RoomApplication app = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
-        if (app.getStatus() != ApplicationStatus.PENDING) {
+        if (app.getStatus() != ApplicationStatus.Pending) {
             throw new IllegalArgumentException("Can only approve PENDING applications");
         }
 
@@ -93,7 +93,7 @@ public class RoomApplicationService {
             throw new IllegalArgumentException("Room is full, cannot approve");
         }
 
-        app.setStatus(ApplicationStatus.APPROVED);
+        app.setStatus(ApplicationStatus.Approved);
         app.setReviewedByStaff(staff);
         app.setReviewedAt(LocalDateTime.now());
         
@@ -111,7 +111,7 @@ public class RoomApplicationService {
                 .startDate(startDate)
                 .endDate(endDate)
                 .deposit(deposit)
-                .status(ContractStatus.ACTIVE)
+                .status(ContractStatus.Active)
                 .createdByStaff(staff)
                 .build();
 
@@ -129,14 +129,14 @@ public class RoomApplicationService {
         RoomApplication app = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
-        if (app.getStatus() != ApplicationStatus.PENDING) {
+        if (app.getStatus() != ApplicationStatus.Pending) {
             throw new IllegalArgumentException("Can only reject PENDING applications");
         }
 
         Staff staff = staffRepository.findByAccountId(staffAccountId)
                 .orElseThrow(() -> new IllegalArgumentException("Staff not found"));
 
-        app.setStatus(ApplicationStatus.REJECTED);
+        app.setStatus(ApplicationStatus.Rejected);
         app.setReviewedByStaff(staff);
         app.setReviewedAt(LocalDateTime.now());
         app.setRejectReason(reason);
