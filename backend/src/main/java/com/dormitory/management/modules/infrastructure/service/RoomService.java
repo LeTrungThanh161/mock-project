@@ -62,7 +62,7 @@ public class RoomService {
                 .maxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity() : (roomType != null ? roomType.getDefaultCapacity() : 0))
                 .currentOccupancy((byte) 0)
                 .price(request.getPrice() != null ? request.getPrice() : (roomType != null ? roomType.getDefaultPrice() : null))
-                .status(request.getStatus() != null ? request.getStatus() : RoomStatus.AVAILABLE)
+                .status(request.getStatus() != null ? request.getStatus() : RoomStatus.Available)
                 .build();
 
         Room savedRoom = roomRepository.save(room);

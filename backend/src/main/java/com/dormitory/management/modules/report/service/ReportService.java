@@ -58,7 +58,7 @@ public class ReportService {
                         .add(inv.getWaterFee())
                         .add(inv.getInternetFee());
                 expected = expected.add(total);
-                if (inv.getPaymentStatus() == PaymentStatus.PAID) {
+                if (inv.getPaymentStatus() == PaymentStatus.Paid) {
                     actual = actual.add(total);
                 }
             }
@@ -78,7 +78,7 @@ public class ReportService {
         LocalDate now = LocalDate.now();
 
         return invoices.stream()
-                .filter(inv -> inv.getPaymentStatus() == PaymentStatus.UNPAID && inv.getDueDate() != null && inv.getDueDate().isBefore(now))
+                .filter(inv -> inv.getPaymentStatus() == PaymentStatus.Unpaid && inv.getDueDate() != null && inv.getDueDate().isBefore(now))
                 .map(inv -> {
                     BigDecimal total = inv.getRoomFee()
                             .add(inv.getElectricityFee())

@@ -55,8 +55,8 @@ public class ContractService {
         Contract oldContract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new IllegalArgumentException("Contract not found"));
 
-        if (oldContract.getStatus() != ContractStatus.ACTIVE) {
-            throw new IllegalArgumentException("Can only renew ACTIVE contracts");
+        if (oldContract.getStatus() != ContractStatus.Active) {
+            throw new IllegalArgumentException("Can only renew Active contracts");
         }
 
         Staff staff = staffRepository.findByAccountId(staffAccountId)
@@ -70,13 +70,13 @@ public class ContractService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .deposit(request.getDeposit())
-                .status(ContractStatus.ACTIVE)
+                .status(ContractStatus.Active)
                 .previousContract(oldContract)
                 .createdByStaff(staff)
                 .build();
 
         // Đánh dấu hợp đồng cũ là EXPIRED
-        oldContract.setStatus(ContractStatus.EXPIRED);
+        oldContract.setStatus(ContractStatus.Expired);
         contractRepository.save(oldContract);
 
         Contract savedNewContract = contractRepository.save(newContract);
@@ -88,12 +88,12 @@ public class ContractService {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new IllegalArgumentException("Contract not found"));
 
-        if (contract.getStatus() != ContractStatus.ACTIVE) {
-            throw new IllegalArgumentException("Can only checkout ACTIVE contracts");
+        if (contract.getStatus() != ContractStatus.Active) {
+            throw new IllegalArgumentException("Can only checkout Active contracts");
         }
 
         // Cập nhật hợp đồng
-        contract.setStatus(ContractStatus.TERMINATED);
+        contract.setStatus(ContractStatus.Terminated);
         contract.setActualCheckoutDate(LocalDate.now());
         contractRepository.save(contract);
 
