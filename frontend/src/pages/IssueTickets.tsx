@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Plus, Wrench, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Wrench } from 'lucide-react';
 import './IssueTickets.css';
-import api from '../services/api';
 
 export const IssueTickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);

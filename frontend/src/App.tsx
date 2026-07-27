@@ -4,7 +4,6 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import Helpdesk from './pages/Helpdesk';
 import Utilities from './pages/Utilities';
 import StudentProfile from './pages/StudentProfile';
 import { PricingTiers } from './pages/PricingTiers';

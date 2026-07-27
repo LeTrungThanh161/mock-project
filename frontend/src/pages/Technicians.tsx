@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, Filter, Plus, Users, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import './Technicians.css';
-import api from '../services/api';
 
 export const Technicians = () => {
   const [techs, setTechs] = useState<any[]>([]);

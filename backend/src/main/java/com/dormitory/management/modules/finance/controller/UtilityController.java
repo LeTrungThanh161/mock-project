@@ -23,11 +23,14 @@ public class UtilityController {
 
     @PostMapping("/invoices/batch")
     public ResponseEntity<String> generateBatchInvoices(
-            @RequestParam String billingMonth,
-            @RequestParam Integer staffId) {
-        LocalDate month = LocalDate.parse(billingMonth + "-01");
-        utilityService.generateInvoicesForMonth(month, staffId);
-        return ResponseEntity.ok("Batch invoices generated successfully for " + billingMonth);
+            @RequestParam(required = false) String billingMonth,
+            @RequestParam(required = false) Integer staffId) {
+        LocalDate month = billingMonth != null
+                ? LocalDate.parse(billingMonth + "-01")
+                : LocalDate.now().withDayOfMonth(1);
+        Integer effectiveStaffId = staffId != null ? staffId : 1;
+        utilityService.generateInvoicesForMonth(month, effectiveStaffId);
+        return ResponseEntity.ok("Batch invoices generated successfully for " + month.getYear() + "-" + month.getMonthValue());
     }
 
     @GetMapping("/meter-readings")

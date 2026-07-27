@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Bell, LogOut, Send, UploadCloud, MessageSquare } from 'lucide-react';
+import { MessageSquare, UploadCloud } from 'lucide-react';
 import './StudentHelpdesk.css';
-import api from '../services/api';
 
 export const StudentHelpdesk = () => {
   const [history, setHistory] = useState<any[]>([]);

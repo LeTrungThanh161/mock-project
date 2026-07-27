@@ -4,11 +4,13 @@ import com.dormitory.management.constants.PaymentGateway;
 import com.dormitory.management.modules.finance.dto.PaymentCallbackResult;
 import com.dormitory.management.modules.finance.entity.Invoice;
 import com.dormitory.management.modules.finance.service.InvoicePaymentService;
+import com.dormitory.management.modules.finance.service.gateway.PayOSService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import vn.payos.type.Webhook;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import java.util.Map;
 public class PaymentController {
 
     private final InvoicePaymentService invoicePaymentService;
+    private final PayOSService payOSService;
 
     /**
      * Sinh viên bấm "Thanh toán" trên giao diện -> chọn cổng -> BE trả về URL để redirect.
@@ -92,22 +95,22 @@ public class PaymentController {
         return ResponseEntity.ok(invoice);
     }
 
-    /**
-     * PayOS webhook — payload JSON lồng nhau, dùng type WebhookData của SDK thay vì Map phẳng.
-     */
-    @PostMapping("/callback/payos/webhook")
-    public ResponseEntity<Map<String, Object>> payosWebhook(
-            @RequestBody vn.payos.type.WebhookData webhookData,
-            @org.springframework.beans.factory.annotation.Autowired
-            com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService) {
+/**
+ * PayOS webhook — Payload JSON từ PayOS gửi sang chứa signature & data.
+ * Dùng type Webhook của SDK PayOS thay vì WebhookData hay Map.
+ */
+@PostMapping("/callback/payos/webhook")
+public ResponseEntity<Map<String, Object>> payosWebhook(
+        @RequestBody Webhook webhookBody) { // 👈 Sửa WebhookData -> Webhook
 
-        PaymentCallbackResult result = invoicePaymentService.handlePayOSWebhook(payOSService, webhookData);
+    // Truyền webhookBody (kiểu Webhook) vào Service
+    PaymentCallbackResult result = invoicePaymentService.handlePayOSWebhook(payOSService, webhookBody);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("success", result.isSignatureValid());
-        response.put("message", result.getMessage());
-        return ResponseEntity.ok(response);
-    }
+    Map<String, Object> response = new LinkedHashMap<>();
+    response.put("success", result.isSignatureValid());
+    response.put("message", result.getMessage());
+    return ResponseEntity.ok(response);
+}
 
     private Map<String, String> buildVnpayIpnResponse(PaymentCallbackResult result) {
         Map<String, String> response = new LinkedHashMap<>();
