@@ -14,6 +14,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
 
     List<Invoice> findByRoom_RoomId(Integer roomId);
 
+    List<Invoice> findByRoom_RoomIdIn(List<Integer> roomIds);
+    List<Invoice> findByBuilding_BuildingId(Integer buildingId);
     /**
      * Dùng cho job nhắc nộp tiền: hóa đơn UNPAID sắp/đã đến hạn.
      */

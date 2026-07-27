@@ -10,7 +10,7 @@ import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.ItemData;
 import vn.payos.type.PaymentData;
 import vn.payos.type.WebhookData;
-
+import vn.payos.type.Webhook;
 import java.util.Map;
 
 /**
@@ -93,9 +93,9 @@ public class PayOSService implements PaymentGatewayService {
      * Dùng riêng cho PayOS vì payload webhook là JSON lồng nhau, không phải map phẳng như VNPay/MoMo.
      * SDK tự verify chữ ký (throw exception nếu sai) rồi mới trả object đã xác thực.
      */
-    public PaymentCallbackResult verifyWebhook(WebhookData webhookData) {
+    public PaymentCallbackResult verifyWebhook(Webhook webhookBody) {
         try {
-            WebhookData verified = payOS.verifyPaymentWebhookData(webhookData);
+            WebhookData verified = payOS.verifyPaymentWebhookData(webhookBody);
 
             boolean success = "00".equals(verified.getCode());
 

@@ -106,8 +106,8 @@ public class InvoicePaymentService {
             throw new IllegalArgumentException("Chỉ số cuối không được nhỏ hơn chỉ số đầu");
         }
 
-        BigDecimal electricityFee = calculateTieredFee(UtilityType.ELECTRICITY, electricConsumption);
-        BigDecimal waterFee = calculateTieredFee(UtilityType.WATER, waterConsumption);
+        BigDecimal electricityFee = calculateTieredFee(UtilityType.Electric, electricConsumption);
+        BigDecimal waterFee = calculateTieredFee(UtilityType.Water, waterConsumption);
 
         Invoice invoice = Invoice.builder()
                 .room(reading.getRoom())
@@ -118,7 +118,7 @@ public class InvoicePaymentService {
                 .waterFee(waterFee)
                 .internetFee(internetFee)
                 .dueDate(reading.getBillingMonth().plusMonths(1).withDayOfMonth(10))
-                .paymentStatus(PaymentStatus.UNPAID)
+                .paymentStatus(PaymentStatus.Unpaid)
                 .generatedByStaff(generatedByStaff)
                 .build();
 
@@ -144,7 +144,7 @@ public class InvoicePaymentService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn: " + invoiceId));
 
-        if (invoice.getPaymentStatus() == PaymentStatus.PAID) {
+        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
             throw new IllegalStateException("Hóa đơn này đã được thanh toán");
         }
 
@@ -191,12 +191,12 @@ public class InvoicePaymentService {
         }
 
         // Idempotent: cổng thanh toán có thể gọi IPN nhiều lần cho cùng 1 giao dịch
-        if (invoice.getPaymentStatus() == PaymentStatus.PAID) {
+        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
             return result;
         }
 
         if (result.isSuccess()) {
-            invoice.setPaymentStatus(PaymentStatus.PAID);
+            invoice.setPaymentStatus(PaymentStatus.Paid);
             invoice.setTransactionRef(result.getTransactionRef());
             invoice.setPaymentDate(LocalDate.now());
         } else {
@@ -213,8 +213,8 @@ public class InvoicePaymentService {
     // ============================================================
     @Transactional
     public PaymentCallbackResult handlePayOSWebhook(com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService,
-                                                      vn.payos.type.WebhookData webhookData) {
-        PaymentCallbackResult result = payOSService.verifyWebhook(webhookData);
+                                                      vn.payos.type.Webhook webhookBody) {
+        PaymentCallbackResult result = payOSService.verifyWebhook(webhookBody);
 
         if (!result.isSignatureValid() || result.getOrderCode() == null) {
             return result;
@@ -227,12 +227,12 @@ public class InvoicePaymentService {
                     .build();
         }
 
-        if (invoice.getPaymentStatus() == PaymentStatus.PAID) {
+        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
             return result; // idempotent
         }
 
         if (result.isSuccess()) {
-            invoice.setPaymentStatus(PaymentStatus.PAID);
+            invoice.setPaymentStatus(PaymentStatus.Paid);
             invoice.setTransactionRef(result.getTransactionRef());
             invoice.setPaymentDate(LocalDate.now());
         } else {
@@ -251,13 +251,13 @@ public class InvoicePaymentService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn: " + invoiceId));
 
-        if (invoice.getPaymentStatus() == PaymentStatus.PAID) {
+        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
             throw new IllegalStateException("Hóa đơn này đã được thanh toán trước đó");
         }
 
         invoice.setPaymentMethod(PaymentGateway.BANK_TRANSFER.name());
         invoice.setTransactionRef(bankTransactionRef);
-        invoice.setPaymentStatus(PaymentStatus.PAID);
+        invoice.setPaymentStatus(PaymentStatus.Paid);
         invoice.setPaymentDate(LocalDate.now());
 
         return invoiceRepository.save(invoice);
