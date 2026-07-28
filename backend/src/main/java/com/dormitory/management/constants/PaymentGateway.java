@@ -1,5 +1,8 @@
 package com.dormitory.management.constants;
 
 public enum PaymentGateway {
-    PAYOS, MOMO, VNPAY
+    VNPAY,
+    MOMO,
+    PAYOS,
+    BANK_TRANSFER
 }

@@ -3,6 +3,8 @@ package com.dormitory.management.modules.finance.service.gateway;
 import com.dormitory.management.constants.PaymentGateway;
 import com.dormitory.management.modules.finance.dto.PaymentCallbackResult;
 import com.dormitory.management.modules.finance.entity.Invoice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,41 +16,50 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Tài liệu tham khảo:
- * https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html
- *
- * ⚠️ CẦN CẤU HÌNH trong application.properties (đã thêm placeholder, bạn thay
- * giá trị thật):
- * vnpay.tmn-code, vnpay.hash-secret, vnpay.pay-url, vnpay.return-url
- */
 @Service
 public class VNPayService implements PaymentGatewayService {
 
-    @Value("${vnpay.tmn-code}")
-    private String tmnCode;
+    private static final Logger log = LoggerFactory.getLogger(VNPayService.class);
 
-    @Value("${vnpay.hash-secret}")
-    private String hashSecret;
+    private final String tmnCode;
+    private final String hashSecret;
+    private final String payUrl;
+    private final String returnUrl;
 
-    @Value("${vnpay.pay-url}")
-    private String payUrl;
+    // Sử dụng Constructor Injection kèm giá trị mặc định tránh Crash App khi thiếu
+    // properties
+    public VNPayService(
+            @Value("${vnpay.tmn-code:}") String tmnCode,
+            @Value("${vnpay.hash-secret:}") String hashSecret,
+            @Value("${vnpay.pay-url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}") String payUrl,
+            @Value("${vnpay.return-url:http://localhost:5173/student-invoices}") String returnUrl) {
 
-    @Value("${vnpay.return-url}")
-    private String returnUrl;
+        this.tmnCode = tmnCode;
+        this.hashSecret = hashSecret;
+        this.payUrl = payUrl;
+        this.returnUrl = returnUrl;
 
-    // @Override
-    // public PaymentGateway getGateway() {
-    // return PaymentGateway.VNPAY;
-    // }
+        if (tmnCode.isBlank() || hashSecret.isBlank()) {
+            log.warn(
+                    "⚠️ [VNPayService] Chưa cấu hình vnpay.tmn-code hoặc vnpay.hash-secret trong application.properties!");
+        } else {
+            log.info("✅ [VNPayService] Khởi tạo thành công.");
+        }
+    }
+
+    @Override
+    public PaymentGateway getGateway() {
+        return PaymentGateway.VNPAY;
+    }
 
     @Override
     public String createPaymentUrl(Invoice invoice, String clientIp) throws Exception {
-        long amount = invoice.getTotalAmount().longValue() * 100; // VNPay yêu cầu amount * 100 (không có phần thập
-                                                                  // phân)
-        // Ghép orderCode + timestamp để mỗi lần tạo link là 1 txnRef khác nhau
-        // (VNPay yêu cầu vnp_TxnRef duy nhất trong ngày -> quan trọng khi cho thanh
-        // toán lại)
+        if (tmnCode.isBlank() || hashSecret.isBlank()) {
+            throw new IllegalStateException(
+                    "Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
+        }
+
+        long amount = invoice.getTotalAmount().longValue() * 100;
         String txnRef = invoice.getOrderCode() + "-" + System.currentTimeMillis();
         String createDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String expireDate = LocalDateTime.now().plusMinutes(15).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -87,7 +98,7 @@ public class VNPayService implements PaymentGatewayService {
     public PaymentCallbackResult verifyCallback(Map<String, String> params) {
         Map<String, String> fields = new TreeMap<>(params);
         String receivedHash = fields.remove("vnp_SecureHash");
-        fields.remove("vnp_SecureHashType"); // field cũ, không tham gia tính hash
+        fields.remove("vnp_SecureHashType");
 
         String calculatedHash;
         try {
@@ -119,7 +130,6 @@ public class VNPayService implements PaymentGatewayService {
             try {
                 orderCode = Long.parseLong(txnRef.substring(0, txnRef.indexOf('-')));
             } catch (NumberFormatException ignored) {
-                // để null, caller sẽ tự báo lỗi không tìm thấy invoice
             }
         }
 
@@ -154,7 +164,8 @@ public class VNPayService implements PaymentGatewayService {
         byte[] bytes = hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
+            // SỬA: Dùng %02X (IN HOA) đúng chuẩn yêu cầu mã hóa chữ ký của VNPay
+            sb.append(String.format("%02X", b));
         }
         return sb.toString();
     }

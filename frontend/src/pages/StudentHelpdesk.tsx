@@ -31,7 +31,7 @@ export const StudentHelpdesk = () => {
       .then(res => {
         const sorted = res.data.sort((a: any, b: any) => b.ticketId - a.ticketId);
         setHistory(sorted);
-        
+
         // Update selected ticket if it's currently open
         if (selectedTicket) {
           const updated = sorted.find((t: any) => t.ticketId === selectedTicket.ticketId);
@@ -158,7 +158,7 @@ export const StudentHelpdesk = () => {
             <h3 className="sh-card-title">
               <span className="sh-warn-icon">⚠</span> Trung tâm tiếp nhận sự cố
             </h3>
-            
+
             <div className="sh-form-group">
               <label>Tiêu đề sự cố</label>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ví dụ: Hỏng điều hòa phòng 402" />
@@ -208,7 +208,7 @@ export const StudentHelpdesk = () => {
             <h3 className="sh-card-title">
               <span className="sh-history-icon">↺</span> Lịch sử & Tiến độ xử lý
             </h3>
-            
+
             <div className="sh-history-list">
               {currentHistory.length === 0 ? <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>Chưa có yêu cầu nào.</p> : null}
               {currentHistory.map((item: any) => {
@@ -231,7 +231,7 @@ export const StudentHelpdesk = () => {
                 );
               })}
             </div>
-            
+
             {totalPages > 0 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '4px 8px' }}>&lt;</button>
@@ -275,18 +275,18 @@ export const StudentHelpdesk = () => {
                         <img src={selectedTicket.imagePath} alt="Minh chứng" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee' }} />
                       </div>
                     )}
-                    
+
                     {/* Tiến độ xử lý (Timeline) */}
                     <div className="sh-timeline" style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
                       <h4 style={{ marginBottom: '15px', color: '#333' }}>TIẾN ĐỘ CHI TIẾT</h4>
-                      
+
                       <div className="sh-timeline-item">
                         <div className="sh-tl-icon done">✓</div>
                         <div className="sh-tl-content">
                           <h5>Yêu cầu đã được gửi</h5>
                           <p>Hệ thống đã tiếp nhận yêu cầu từ sinh viên.</p>
                         </div>
-                        <div className="sh-tl-time">{new Date(selectedTicket.createdAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div className="sh-tl-time">{new Date(selectedTicket.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
 
                       <div className="sh-timeline-item">
@@ -308,7 +308,7 @@ export const StudentHelpdesk = () => {
                           <p>Sự cố đã được khắc phục xong.</p>
                         </div>
                         {selectedTicket.resolvedAt && (
-                          <div className="sh-tl-time">{new Date(selectedTicket.resolvedAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</div>
+                          <div className="sh-tl-time">{new Date(selectedTicket.resolvedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
                         )}
                       </div>
                     </div>
@@ -320,14 +320,14 @@ export const StudentHelpdesk = () => {
                           {getStatusText(selectedTicket.status)}
                         </span>
                       </div>
-                      
+
                       {selectedTicket.status === 'InProgress' && (
-                        <button 
+                        <button
                           onClick={handleCompleteTicket}
                           disabled={completing}
-                          style={{ 
-                            background: '#4CAF50', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', 
-                            cursor: completing ? 'not-allowed' : 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' 
+                          style={{
+                            background: '#4CAF50', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px',
+                            cursor: completing ? 'not-allowed' : 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px'
                           }}
                         >
                           <CheckCircle size={18} /> {completing ? 'Đang xử lý...' : 'Đánh dấu hoàn thành'}

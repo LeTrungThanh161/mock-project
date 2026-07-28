@@ -3,30 +3,76 @@ import { ChevronRight, CreditCard } from 'lucide-react';
 import './StudentInvoices.css';
 import api from '../services/api';
 
+type InvoiceItem = {
+  invoiceId: number;
+  id: string;
+  period: string;
+  due: string;
+  total: number;
+  status: string;
+  roomFee: number;
+  electricityFee: number;
+  waterFee: number;
+  internetFee: number;
+  paymentStatus: string;
+};
+
 export const StudentInvoices = () => {
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [selectedInv, setSelectedInv] = useState<any>(null);
+  const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
+  const [selectedInv, setSelectedInv] = useState<InvoiceItem | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    // Mock API
-    const mockList = [
-      { id: 'INV-260703', period: 'Tháng 07/2026', due: '15/08/2026', total: 1250000, status: 'CHƯA THANH TOÁN' },
-      { id: 'INV-260601', period: 'Tháng 06/2026', due: '15/07/2026', total: 1180000, status: 'ĐÃ THANH TOÁN' },
-      { id: 'INV-260505', period: 'Tháng 05/2026', due: '15/06/2026', total: 1025000, status: 'ĐÃ THANH TOÁN' },
-      { id: 'INV-260408', period: 'Tháng 04/2026', due: '15/05/2026', total: 1240000, status: 'ĐĐÃ THANH TOÁN' },
-    ];
-    setInvoices(mockList);
-    setSelectedInv(mockList[0]);
+    const loadInvoices = async () => {
+      try {
+        const response = await api.get('/invoices/my');
+        const mapped = (response.data || []).map((item: any) => ({
+          invoiceId: item.invoiceId,
+          id: `INV-${item.invoiceId}`,
+          period: `Tháng ${new Date(item.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}`,
+          due: item.dueDate ? new Date(item.dueDate).toLocaleDateString('vi-VN') : '—',
+          total: Number(item.totalAmount ?? (item.roomFee ?? 0) + (item.electricityFee ?? 0) + (item.waterFee ?? 0) + (item.internetFee ?? 0)),
+          status: item.paymentStatus === 'PAID' ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN',
+          roomFee: Number(item.roomFee ?? 0),
+          electricityFee: Number(item.electricityFee ?? 0),
+          waterFee: Number(item.waterFee ?? 0),
+          internetFee: Number(item.internetFee ?? 0),
+          paymentStatus: item.paymentStatus,
+        }));
+        setInvoices(mapped);
+        setSelectedInv(mapped[0] ?? null);
+      } catch (err: any) {
+        setError(err?.message || 'Không thể tải danh sách hóa đơn');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInvoices();
   }, []);
 
-  const handlePay = () => {
-    setShowPayment(true);
-  };
+  const formatCurrency = (value: number) => value.toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' đ';
 
-  const confirmPayment = () => {
-    alert('Thanh toán thành công!');
-    setShowPayment(false);
+  const handlePay = async () => {
+    if (!selectedInv) return;
+    setPaying(true);
+    try {
+      const response = await api.post(`/payments/${selectedInv.invoiceId}/create?gateway=VNPAY`);
+      const paymentUrl = response.data?.paymentUrl;
+      if (paymentUrl) {
+        window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+        setShowPayment(false);
+      } else {
+        setError('Không nhận được đường dẫn thanh toán');
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Không thể tạo link thanh toán');
+    } finally {
+      setPaying(false);
+    }
   };
 
   return (
@@ -47,16 +93,18 @@ export const StudentInvoices = () => {
       <div className="si-content">
         <div className="si-list-section">
           <h2>Hóa đơn điện nước</h2>
+          {loading && <p>Đang tải hóa đơn...</p>}
+          {error && <p className="text-danger">{error}</p>}
           <div className="si-list">
-            {invoices.map((inv, i) => (
+            {invoices.map((inv) => (
               <div
-                key={i}
-                className={`si-list-item ${selectedInv?.id === inv.id ? 'active' : ''}`}
+                key={inv.invoiceId}
+                className={`si-list-item ${selectedInv?.invoiceId === inv.invoiceId ? 'active' : ''}`}
                 onClick={() => setSelectedInv(inv)}
               >
                 <div className="si-item-top">
                   <span>Kỳ thanh toán</span>
-                  <span className={`si-badge ${inv.status === 'CHƯA THANH TOÁN' ? 'danger' : 'success'}`}>
+                  <span className={`si-badge ${inv.paymentStatus === 'PAID' ? 'success' : 'danger'}`}>
                     {inv.status}
                   </span>
                 </div>
@@ -64,7 +112,7 @@ export const StudentInvoices = () => {
                 <div className="si-item-bottom">
                   <div>
                     <span className="text-gray">Hạn chót: {inv.due}</span>
-                    <h3 className="si-item-total">{inv.total.toLocaleString()} đ</h3>
+                    <h3 className="si-item-total">{formatCurrency(inv.total)}</h3>
                   </div>
                   <ChevronRight size={20} className="text-gray" />
                 </div>
@@ -89,36 +137,15 @@ export const StudentInvoices = () => {
 
               <div className="si-detail-body">
                 <div className="si-section-title">
-                  <span className="si-icon-box">🏢</span> Tiền phòng cố định
-                </div>
-                <table className="si-table">
-                  <thead><tr><th>LOẠI PHÒNG</th><th>DIỆN TÍCH</th><th>ĐƠN GIÁ</th></tr></thead>
-                  <tbody><tr><td>Phòng tiêu chuẩn 4 người</td><td>24 m²</td><td>800.000 đ</td></tr></tbody>
-                </table>
-
-                <div className="si-section-title mt-6">
-                  <span className="si-icon-box elec">⚡</span> Tiền điện
-                </div>
-                <div className="si-readings-box">
-                  <div><span className="text-gray">CHỈ SỐ CŨ</span><br /><strong>1250</strong></div>
-                  <div><span className="text-gray">CHỈ SỐ MỚI</span><br /><strong>1320</strong></div>
-                  <div><span className="text-gray">TIÊU THỤ</span><br /><strong className="text-blue">70 kWh</strong></div>
+                  <span className="si-icon-box">🏢</span> Chi tiết phí
                 </div>
                 <table className="si-table no-bg">
                   <tbody>
-                    <tr><td>Bậc 1: 50 kWh đầu tiên</td><td>50 kWh × 1.800đ</td><td>90.000 đ</td></tr>
-                    <tr><td>Bậc 2: 20 kWh tiếp theo</td><td>20 kWh × 2.500đ</td><td>50.000 đ</td></tr>
-                    <tr className="si-total-row"><td>Tổng cộng tiền điện</td><td></td><td>140.000 đ</td></tr>
-                  </tbody>
-                </table>
-
-                <div className="si-section-title mt-6">
-                  <span className="si-icon-box water">💧</span> Tiền nước
-                </div>
-                <table className="si-table no-bg">
-                  <tbody>
-                    <tr><td>Chỉ số tiêu thụ</td><td>8 m³ × 6.000đ</td><td>48.000 đ</td></tr>
-                    <tr className="si-total-row"><td>Tổng cộng tiền nước</td><td></td><td>48.000 đ</td></tr>
+                    <tr><td>Tiền phòng cố định</td><td></td><td>{formatCurrency(selectedInv.roomFee)}</td></tr>
+                    <tr><td>Tiền điện</td><td></td><td>{formatCurrency(selectedInv.electricityFee)}</td></tr>
+                    <tr><td>Tiền nước</td><td></td><td>{formatCurrency(selectedInv.waterFee)}</td></tr>
+                    <tr><td>Internet</td><td></td><td>{formatCurrency(selectedInv.internetFee)}</td></tr>
+                    <tr className="si-total-row"><td>Tổng cộng</td><td></td><td>{formatCurrency(selectedInv.total)}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -126,10 +153,12 @@ export const StudentInvoices = () => {
               <div className="si-detail-footer">
                 <div>
                   <span className="text-gray">TỔNG SỐ TIỀN CẦN THANH TOÁN</span>
-                  <h2 className="si-grand-total">{selectedInv.total.toLocaleString()} đ</h2>
+                  <h2 className="si-grand-total">{formatCurrency(selectedInv.total)}</h2>
                 </div>
-                {selectedInv.status === 'CHƯA THANH TOÁN' && (
-                  <button className="si-btn-pay" onClick={handlePay}><CreditCard size={18} /> Thanh toán trực tuyến</button>
+                {selectedInv.paymentStatus !== 'PAID' && (
+                  <button className="si-btn-pay" onClick={() => setShowPayment(true)} disabled={paying}>
+                    <CreditCard size={18} /> {paying ? 'Đang xử lý...' : 'Thanh toán trực tuyến'}
+                  </button>
                 )}
               </div>
             </div>
@@ -141,15 +170,12 @@ export const StudentInvoices = () => {
         <div className="si-modal-overlay">
           <div className="si-modal">
             <h3>Cổng thanh toán</h3>
-            <p>Vui lòng nhập thông tin thẻ để thanh toán <strong>{selectedInv?.total.toLocaleString()} đ</strong></p>
-            <input type="text" placeholder="Số thẻ (VD: 4123 4567 8901 2345)" className="si-input-full" />
-            <div className="flex gap-2">
-              <input type="text" placeholder="MM/YY" className="si-input-half" />
-              <input type="text" placeholder="CVC" className="si-input-half" />
-            </div>
+            <p>Bạn sẽ được chuyển đến cổng VNPay để thanh toán <strong>{formatCurrency(selectedInv?.total ?? 0)}</strong></p>
             <div className="flex justify-end gap-2 mt-4">
               <button className="si-btn-cancel" onClick={() => setShowPayment(false)}>Hủy</button>
-              <button className="si-btn-pay" onClick={confirmPayment}>Xác nhận thanh toán</button>
+              <button className="si-btn-pay" onClick={handlePay} disabled={paying}>
+                {paying ? 'Đang tạo link...' : 'Tiếp tục thanh toán'}
+              </button>
             </div>
           </div>
         </div>

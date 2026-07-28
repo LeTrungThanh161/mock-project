@@ -9,12 +9,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
 
     Optional<Invoice> findByOrderCode(Long orderCode);
 
     List<Invoice> findByRoom_RoomId(Integer roomId);
+
+    List<Invoice> findByRoom_RoomIdIn(List<Integer> roomIds);
+
+    List<Invoice> findByBuilding_BuildingId(Integer buildingId);
 
     /**
      * Dùng cho job nhắc nộp tiền: hóa đơn UNPAID sắp/đã đến hạn.
