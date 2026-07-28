@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 import java.util.List;
 
 // ========================================================================
@@ -126,6 +127,9 @@ public class SecurityConfig {
                                 "/api/auth/debug-token")
                         .permitAll()
 
+                        // ── [1.5] MANAGER CÓ THỂ XEM PRICING TIERS ─────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/admin/pricing-tiers").hasAnyRole("ADMIN", "MANAGER")
+
                         // ── [2] ADMIN ONLY ────────────────────────────────────────────────────
                         .requestMatchers(
                                 "/api/admin/**", // toàn bộ trang admin
@@ -165,7 +169,8 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers(
-                                "/api/meter-readings" // nhập chỉ số điện/nước
+                                "/api/meter-readings", // nhập chỉ số điện/nước
+                                "/api/meter-readings/**"
                         ).hasAnyRole("ADMIN", "MANAGER")
 
                         .requestMatchers(

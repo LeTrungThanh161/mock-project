@@ -35,7 +35,6 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/technicians', icon: <HardHat size={18} />, label: 'Nhân viên kỹ thuật' },
   ],
   MANAGER: [
-    { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { to: '/buildings', icon: <Building2 size={18} />, label: 'Tòa nhà & Phòng' },
     { to: '/students', icon: <Users size={18} />, label: 'Sinh viên' },
     { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },
@@ -86,7 +85,7 @@ const Sidebar = () => {
       </div>
 
       {/* User Info */}
-      <div className="sidebar-user-info">
+      {/* <div className="sidebar-user-info">
         <div className="user-avatar">
           {(user?.fullName ?? 'U').charAt(0).toUpperCase()}
         </div>
@@ -94,7 +93,7 @@ const Sidebar = () => {
           <p className="user-name">{user?.fullName ?? 'Khách'}</p>
           <span className={ROLE_BADGE_CLASS[role]}>{ROLE_LABELS[role]}</span>
         </div>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <nav className="sidebar-nav">

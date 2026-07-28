@@ -26,20 +26,22 @@ public class VNPayService implements PaymentGatewayService {
     private final String payUrl;
     private final String returnUrl;
 
-    // Sử dụng Constructor Injection kèm giá trị mặc định tránh Crash App khi thiếu properties
+    // Sử dụng Constructor Injection kèm giá trị mặc định tránh Crash App khi thiếu
+    // properties
     public VNPayService(
             @Value("${vnpay.tmn-code:}") String tmnCode,
             @Value("${vnpay.hash-secret:}") String hashSecret,
             @Value("${vnpay.pay-url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}") String payUrl,
             @Value("${vnpay.return-url:http://localhost:5173/student-invoices}") String returnUrl) {
-        
+
         this.tmnCode = tmnCode;
         this.hashSecret = hashSecret;
         this.payUrl = payUrl;
         this.returnUrl = returnUrl;
 
         if (tmnCode.isBlank() || hashSecret.isBlank()) {
-            log.warn("⚠️ [VNPayService] Chưa cấu hình vnpay.tmn-code hoặc vnpay.hash-secret trong application.properties!");
+            log.warn(
+                    "⚠️ [VNPayService] Chưa cấu hình vnpay.tmn-code hoặc vnpay.hash-secret trong application.properties!");
         } else {
             log.info("✅ [VNPayService] Khởi tạo thành công.");
         }
@@ -53,7 +55,8 @@ public class VNPayService implements PaymentGatewayService {
     @Override
     public String createPaymentUrl(Invoice invoice, String clientIp) throws Exception {
         if (tmnCode.isBlank() || hashSecret.isBlank()) {
-            throw new IllegalStateException("Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
+            throw new IllegalStateException(
+                    "Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
         }
 
         long amount = invoice.getTotalAmount().longValue() * 100;
@@ -144,11 +147,13 @@ public class VNPayService implements PaymentGatewayService {
         Iterator<Map.Entry<String, String>> it = sortedParams.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, String> entry = it.next();
-            if (entry.getValue() == null || entry.getValue().isEmpty()) continue;
+            if (entry.getValue() == null || entry.getValue().isEmpty())
+                continue;
             sb.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8))
                     .append('=')
                     .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-            if (it.hasNext()) sb.append('&');
+            if (it.hasNext())
+                sb.append('&');
         }
         return sb.toString();
     }

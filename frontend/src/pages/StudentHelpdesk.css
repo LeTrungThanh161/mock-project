@@ -186,6 +186,7 @@
 }
 .sh-badge-status.blue { background: #bae6fd; color: #0284c7; }
 .sh-badge-status.gray { background: #f1f5f9; color: #64748b; }
+.sh-badge-status.orange { background: #ffedd5; color: #ea580c; }
 
 .sh-assigned-badge {
   font-size: 10px;
@@ -299,4 +300,25 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Modal Popup */
+.sh-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.sh-modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
