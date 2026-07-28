@@ -5,9 +5,7 @@ import com.dormitory.management.modules.finance.entity.PricingTier;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface PricingTierRepository extends JpaRepository<PricingTier, Integer> {
 
     List<PricingTier> findByUtilityTypeOrderByTierOrderAsc(UtilityType utilityType);
