@@ -5,16 +5,46 @@ import api from '../services/api';
 
 export const Invoices = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const mockData = [
-      { id: 'INV-240501', room: 'P.302 (Khu A)', period: 'Tháng 05/2024', total: 4520000, due: '15/05/2024', status: 'Đã thanh toán' },
-      { id: 'INV-240502', room: 'P.105 (Khu B)', period: 'Tháng 05/2024', total: 3280000, due: '15/05/2024', status: 'Chưa thanh toán' },
-      { id: 'INV-240489', room: 'P.404 (Khu A)', period: 'Tháng 04/2024', total: 5100000, due: '30/04/2024', status: 'Quá hạn' },
-      { id: 'INV-240503', room: 'P.210 (Khu C)', period: 'Tháng 05/2024', total: 2950000, due: '15/05/2024', status: 'Đã thanh toán' },
-      { id: 'INV-240504', room: 'P.501 (Khu A)', period: 'Tháng 05/2024', total: 4890000, due: '15/05/2024', status: 'Chưa thanh toán' },
-    ];
-    setInvoices(mockData);
+    const loadInvoices = async () => {
+      try {
+        const response = await api.get('/invoices');
+        const mapped = (response.data || []).map((item: any) => {
+          const dueDate = item.dueDate ? new Date(item.dueDate) : null;
+          const today = new Date();
+          const daysLate = dueDate ? Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+          const total = Number(item.totalAmount ?? (item.roomFee ?? 0) + (item.electricityFee ?? 0) + (item.waterFee ?? 0) + (item.internetFee ?? 0));
+          let status = item.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán';
+          let penalty = 0;
+          if (item.paymentStatus !== 'PAID' && dueDate) {
+            if (daysLate > 0) {
+              status = 'Quá hạn';
+              penalty = Math.max(0, daysLate) * 5000;
+            }
+          }
+          return {
+            id: `INV-${item.invoiceId}`,
+            room: item.room?.roomNumber ? `P.${item.room.roomNumber}` : 'N/A',
+            period: `Tháng ${new Date(item.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}`,
+            total,
+            due: dueDate ? dueDate.toLocaleDateString('vi-VN') : '—',
+            status,
+            penalty,
+            paymentStatus: item.paymentStatus,
+          };
+        });
+        setInvoices(mapped);
+      } catch (err: any) {
+        setError(err?.message || 'Không thể tải danh sách hóa đơn');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInvoices();
   }, []);
 
   return (
@@ -23,11 +53,27 @@ export const Invoices = () => {
         <h2>Quản lý Hóa đơn</h2>
       </div>
 
+      {error && <div className="inv-banner" style={{ borderColor: '#f59e0b' }}><p>{error}</p></div>}
+      {loading && <p>Đang tải dữ liệu hóa đơn...</p>}
+
       <div className="inv-banner">
         <div>
           <h3>Hệ thống Xuất Hóa Đơn Tự Động</h3>
           <p>Tối ưu hóa quy trình quản lý bằng cách xuất hóa đơn cho tất cả các phòng chỉ với một lần nhấn. Hệ thống sẽ tự động tính toán chi phí điện, nước và dịch vụ đi kèm.</p>
-          <button className="inv-btn-auto"><Zap size={16} /> Xuất hóa đơn hệ thống hàng loạt</button>
+          <button
+            className="inv-btn-auto"
+            onClick={async () => {
+              try {
+                await api.post('/utilities/invoices/batch');
+                alert('Xuất hóa đơn hàng loạt thành công');
+                window.location.reload();
+              } catch (err: any) {
+                alert(err?.message || 'Không thể xuất hóa đơn');
+              }
+            }}
+          >
+            <Zap size={16} /> Xuất hóa đơn hệ thống hàng loạt
+          </button>
         </div>
         <div className="inv-banner-icon">
           {/* Decorative Icon */}
@@ -94,6 +140,7 @@ export const Invoices = () => {
                   <span className={`inv-badge ${inv.status === 'Đã thanh toán' ? 'success' : inv.status === 'Chưa thanh toán' ? 'warning' : 'danger'}`}>
                     {inv.status}
                   </span>
+                  {inv.penalty > 0 && <div className="danger-text">Phạt: {inv.penalty.toLocaleString()} đ</div>}
                 </td>
                 <td className="inv-action-cells">
                   {inv.status !== 'Đã thanh toán' && (
