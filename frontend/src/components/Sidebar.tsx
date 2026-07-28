@@ -35,7 +35,6 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/technicians', icon: <HardHat size={18} />, label: 'Nhân viên kỹ thuật' },
   ],
   MANAGER: [
-    { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { to: '/buildings', icon: <Building2 size={18} />, label: 'Tòa nhà & Phòng' },
     { to: '/students', icon: <Users size={18} />, label: 'Sinh viên' },
     { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },

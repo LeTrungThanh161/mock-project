@@ -24,6 +24,9 @@ export const StudentHelpdesk = () => {
   const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
   const [completing, setCompleting] = useState(false);
 
+  // Search state
+  const [search, setSearch] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchHistory = () => {
@@ -113,8 +116,18 @@ export const StudentHelpdesk = () => {
       .finally(() => setCompleting(false));
   };
 
-  const totalPages = Math.ceil(history.length / itemsPerPage);
-  const currentHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredHistory = history.filter(item => {
+    if (!search) return true;
+    try {
+      const parsed = JSON.parse(item.description);
+      return parsed.title.toLowerCase().includes(search.toLowerCase());
+    } catch {
+      return item.description.toLowerCase().includes(search.toLowerCase());
+    }
+  });
+
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const currentHistory = filteredHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -147,7 +160,7 @@ export const StudentHelpdesk = () => {
         <div className="sh-header-right">
           <div className="sh-search">
             <span>🔍</span>
-            <input type="text" placeholder="Tìm kiếm yêu cầu..." />
+            <input type="text" placeholder="Tìm kiếm yêu cầu..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
@@ -183,7 +196,7 @@ export const StudentHelpdesk = () => {
               <label>Hình ảnh minh chứng (tối đa 1 ảnh)</label>
               <div className="sh-upload-area" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer' }}>
                 <UploadCloud size={24} className="text-gray mb-2" />
-                <p>Kéo thả hoặc <span className="text-blue">tải lên từ thiết bị</span></p>
+                <p><span className="text-blue">Tải lên từ thiết bị</span></p>
                 <span className="sh-upload-hint">DUNG LƯỢNG TỐI ĐA 20MB</span>
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
               </div>
@@ -283,7 +296,7 @@ export const StudentHelpdesk = () => {
                       <div className="sh-timeline-item">
                         <div className="sh-tl-icon done">✓</div>
                         <div className="sh-tl-content">
-                          <h5>Yêu cầu đã được gửi</h5>
+                          <h5 className="text-blue">Yêu cầu đã được gửi</h5>
                           <p>Hệ thống đã tiếp nhận yêu cầu từ sinh viên.</p>
                         </div>
                         <div className="sh-tl-time">{new Date(selectedTicket.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -303,8 +316,8 @@ export const StudentHelpdesk = () => {
 
                       <div className="sh-timeline-item">
                         <div className={`sh-tl-icon ${selectedTicket.status === 'Completed' ? 'done' : 'pending'}`}>{selectedTicket.status === 'Completed' ? '✓' : ''}</div>
-                        <div className={`sh-tl-content ${selectedTicket.status === 'Completed' ? 'text-blue' : 'text-gray'}`}>
-                          <h5>Đã hoàn thành</h5>
+                        <div className="sh-tl-content">
+                          <h5 className={selectedTicket.status === 'Completed' ? "text-blue" : "text-gray"}>Đã hoàn thành</h5>
                           <p>Sự cố đã được khắc phục xong.</p>
                         </div>
                         {selectedTicket.resolvedAt && (

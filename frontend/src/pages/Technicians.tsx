@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Filter, Plus, Users, CheckCircle, Clock, TrendingUp, X, Edit } from 'lucide-react';
 import './Technicians.css';
+import api from '../services/api';
 
 export const Technicians = () => {
   const [techs, setTechs] = useState<any[]>([]);
@@ -10,13 +11,16 @@ export const Technicians = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Form fields
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [status, setStatus] = useState('Active'); // Active or Inactive
   const [buildingId, setBuildingId] = useState(1);
   const [editId, setEditId] = useState<number | null>(null);
+
+  // Search state
+  const [search, setSearch] = useState('');
 
   const fetchTechs = () => {
     api.get('/technicians')
@@ -71,7 +75,7 @@ export const Technicians = () => {
     e.preventDefault();
     if (!fullName || !phoneNumber || !editId) return;
     setLoading(true);
-    
+
     const payload = {
       technicianId: editId,
       fullName,
@@ -103,8 +107,14 @@ export const Technicians = () => {
     setShowEditModal(true);
   };
 
-  const totalPages = Math.ceil(techs.length / itemsPerPage);
-  const currentTechs = techs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredTechs = techs.filter(t => {
+    if (!search) return true;
+    const lowerSearch = search.toLowerCase();
+    return t.fullName.toLowerCase().includes(lowerSearch) || (t.phoneNumber && t.phoneNumber.includes(search));
+  });
+
+  const totalPages = Math.ceil(filteredTechs.length / itemsPerPage);
+  const currentTechs = filteredTechs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -144,7 +154,7 @@ export const Technicians = () => {
             <CheckCircle size={20} className="text-green" />
           </div>
           <h4>{techs.filter(t => t.status === 'Active').length}</h4>
-          <span>{techs.length ? Math.round((techs.filter(t => t.status === 'Active').length / techs.length)*100) : 0}% công suất</span>
+          <span>{techs.length ? Math.round((techs.filter(t => t.status === 'Active').length / techs.length) * 100) : 0}% công suất</span>
         </div>
         <div className="tech-stat-card">
           <div className="tech-stat-top">
@@ -168,12 +178,12 @@ export const Technicians = () => {
         <div className="tech-table-actions">
           <div className="tech-search">
             <span>🔍</span>
-            <input type="text" placeholder="Tìm kiếm tên, số điện thoại..." />
+            <input type="text" placeholder="Tìm kiếm tên, số điện thoại..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div className="tech-actions-right">
+          {/* <div className="tech-actions-right">
             <button className="tech-btn-outline"><Filter size={16} /> Lọc Chuyên môn</button>
             <button className="tech-btn-outline"><Download size={16} /> Xuất báo cáo</button>
-          </div>
+          </div> */}
         </div>
 
         <table className="tech-table">
@@ -216,7 +226,7 @@ export const Technicians = () => {
         </table>
 
         <div className="tech-pagination">
-          <span>Hiển thị {currentTechs.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, techs.length)} trên {techs.length} nhân viên</span>
+          <span>Hiển thị {currentTechs.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredTechs.length)} trên {filteredTechs.length} nhân viên</span>
           {totalPages > 0 && (
             <div className="tech-page-controls">
               <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
@@ -289,9 +299,9 @@ export const Technicians = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái</label>
                 {/* Prevent changing from Bận to Sẵn Sàng if currently Bận */}
-                <select 
-                  value={status} 
-                  onChange={e => setStatus(e.target.value)} 
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
                   disabled={techs.find(t => t.technicianId === editId)?.status === 'Inactive'}
                   title={techs.find(t => t.technicianId === editId)?.status === 'Inactive' ? "Nhân viên đang làm nhiệm vụ, không thể đổi trạng thái thủ công" : ""}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: techs.find(t => t.technicianId === editId)?.status === 'Inactive' ? '#eee' : '#fff' }}

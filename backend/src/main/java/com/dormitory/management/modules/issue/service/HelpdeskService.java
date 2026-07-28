@@ -79,6 +79,9 @@ public class HelpdeskService {
 
         TicketStatus oldStatus = ticket.getStatus();
 
+        technician.setStatus(com.dormitory.management.constants.AccountStatus.Inactive);
+        technicianRepository.save(technician);
+
         ticket.setAssignedTechnician(technician);
         ticket.setStatus(TicketStatus.InProgress);
 

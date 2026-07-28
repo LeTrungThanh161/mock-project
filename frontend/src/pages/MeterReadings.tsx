@@ -41,7 +41,7 @@ interface UIDataRow {
 
 export const MeterReadings = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
 
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
@@ -76,7 +76,7 @@ export const MeterReadings = () => {
         }
       })
       .catch(err => console.error("Failed to fetch buildings", err));
-      
+
     // Fetch pricing tiers
     api.get('/admin/pricing-tiers')
       .then(res => {
@@ -148,12 +148,11 @@ export const MeterReadings = () => {
   };
 
   useEffect(() => {
-    if (selectedBuilding !== '' && month !== '' && !initialFetched) {
+    if (selectedBuilding !== '' && month !== '') {
       fetchReadings();
-      setInitialFetched(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBuilding, month, initialFetched]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBuilding, month, selectedFloor]);
 
   const handleInputChange = (index: number, valStr: string) => {
     const newVal = valStr === '' ? null : parseFloat(valStr);
@@ -233,14 +232,14 @@ export const MeterReadings = () => {
       .filter(t => t.utilityType === service)
       .sort((a, b) => a.tierOrder - b.tierOrder);
     if (!tiers.length) return 0;
-    
+
     let remaining = usage;
     let total = 0;
-    
+
     for (const tier of tiers) {
       if (remaining <= 0) break;
-      const capacity = tier.toUnit !== null 
-        ? (tier.fromUnit === 0 ? tier.toUnit : tier.toUnit - tier.fromUnit + 1) 
+      const capacity = tier.toUnit !== null
+        ? (tier.fromUnit === 0 ? tier.toUnit : tier.toUnit - tier.fromUnit + 1)
         : Infinity;
       const amountToCharge = Math.min(remaining, capacity);
       total += amountToCharge * tier.unitPrice;
@@ -282,9 +281,6 @@ export const MeterReadings = () => {
           <label>Tháng</label>
           <input type="month" value={month} onChange={e => setMonth(e.target.value)} />
         </div>
-        <button className="mr-btn-filter" onClick={fetchReadings} disabled={loading}>
-          <Filter size={18} /> {loading ? 'Đang lọc...' : 'Lọc dữ liệu'}
-        </button>
       </div>
 
       <div className="mr-table-card">

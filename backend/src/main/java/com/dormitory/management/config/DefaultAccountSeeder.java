@@ -48,12 +48,13 @@ public class DefaultAccountSeeder {
                         .totalFloors((byte) 8)
                         .build()));
 
-        seedAccount("admin@dorm.local", "admin123", adminRole, "Nguyễn Quản Trị", "Admin", defaultBuilding);
+        seedAccount("admin@dorm.local", "admin123", adminRole, "Nguyễn Quản Trị", "Admin", null);
         seedAccount("manager@dorm.local", "manager123", managerRole, "Trần Quản Lý", "Manager", defaultBuilding);
         seedAccount("student@dorm.local", "student123", studentRole, "Lê Sinh Viên", "Student", null);
     }
 
-    private void seedAccount(String email, String rawPassword, Role role, String fullName, String position, Building building) {
+    private void seedAccount(String email, String rawPassword, Role role, String fullName, String position,
+            Building building) {
         Account account = accountRepository.findByEmail(email).orElseGet(() -> Account.builder()
                 .email(email)
                 .status(AccountStatus.Active)
@@ -81,13 +82,15 @@ public class DefaultAccountSeeder {
             staff.setBuilding(building);
             staffRepository.save(staff);
         } else {
-            Student student = studentRepository.findByAccountId(account.getAccountId()).orElseGet(() -> Student.builder()
-                    .accountId(account)
-                    .studentCode("STD" + account.getAccountId())
-                    .status(StudentStatus.Active)
-                    .build());
+            Student student = studentRepository.findByAccountId(account.getAccountId())
+                    .orElseGet(() -> Student.builder()
+                            .accountId(account)
+                            .studentCode("STD" + account.getAccountId())
+                            .status(StudentStatus.Active)
+                            .build());
             student.setAccountId(account);
-            student.setStudentCode(student.getStudentCode() != null ? student.getStudentCode() : "STD" + account.getAccountId());
+            student.setStudentCode(
+                    student.getStudentCode() != null ? student.getStudentCode() : "STD" + account.getAccountId());
             student.setFullName(fullName);
             student.setGender(Gender.Male);
             student.setPhoneNumber("0911111111");

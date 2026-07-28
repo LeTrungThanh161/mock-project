@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Wrench, Eye, CheckCircle, Clock, X } from 'lucide-react';
 import './IssueTickets.css';
+import api from '../services/api';
 
 export const IssueTickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -12,6 +13,8 @@ export const IssueTickets = () => {
   const [selectedAssignTicket, setSelectedAssignTicket] = useState<any | null>(null);
   const [selectedTechId, setSelectedTechId] = useState<number | ''>('');
   const [assignLoading, setAssignLoading] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchTickets = () => {
     api.get('/helpdesk')
@@ -58,8 +61,13 @@ export const IssueTickets = () => {
     setSelectedAssignTicket(null);
   };
 
-  const totalPages = Math.ceil(tickets.length / itemsPerPage);
-  const currentTickets = tickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredTickets = tickets.filter(t => 
+    t.ticketId.toString().includes(searchTerm) || 
+    (t.room?.roomNumber || `Phòng ${t.room?.roomId}`).toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+  const currentTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -104,6 +112,15 @@ export const IssueTickets = () => {
 
   const availableTechs = technicians.filter(t => t.status === 'Active');
 
+  const btnStyle = {
+    display: 'inline-flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90px',
+    padding: '8px 12px',
+    fontSize: '13px'
+  };
+
   return (
     <div className="tk-page-container">
       <div className="tk-header">
@@ -139,10 +156,14 @@ export const IssueTickets = () => {
             <h3 style={{ color: 'black' }}>Danh sách yêu cầu hỗ trợ</h3>
             <div className="tk-search">
               <span>🔍</span>
-              <input type="text" placeholder="Tìm kiếm phòng, mã..." />
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm phòng, mã..." 
+                value={searchTerm}
+                onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              />
             </div>
           </div>
-          <button className="tk-btn-primary"><Plus size={16} /> TẠO PHIẾU MỚI</button>
         </div>
 
         <table className="tk-table">
@@ -167,9 +188,11 @@ export const IssueTickets = () => {
                 <tr key={t.ticketId}>
                   <td style={{ color: 'gray' }}><strong>#TK-{t.ticketId}</strong></td>
                   <td style={{ color: 'gray' }}>{t.room?.roomNumber || `Phòng ${t.room?.roomId}`}</td>
-                  <td className="tk-type-cell" style={{ color: 'gray' }}>
-                    {parsed.category.includes('Điện') ? <span className="tk-icon elec">⚡</span> : parsed.category.includes('Nước') ? <span className="tk-icon water">💧</span> : <span className="tk-icon net">📡</span>}
-                    {parsed.category}
+                  <td style={{ color: 'gray' }}>
+                    <div className="tk-type-cell">
+                      {parsed.category.includes('Điện') ? <span className="tk-icon elec">⚡</span> : parsed.category.includes('Nước') ? <span className="tk-icon water">💧</span> : <span className="tk-icon net">📡</span>}
+                      {parsed.category}
+                    </div>
                   </td>
                   <td style={{ color: 'gray' }}>
                     <strong>{parsed.title}</strong>
@@ -186,8 +209,10 @@ export const IssueTickets = () => {
                     {getStatusText(t.status)}
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    <button className="tk-btn-action" onClick={() => setSelectedDetailTicket(t)} style={{ marginRight: '8px', background: '#e0f2fe', color: '#0284c7' }}><Eye size={14} /> Chi tiết</button>
-                    <button className="tk-btn-action" onClick={() => setSelectedAssignTicket(t)}><Wrench size={14} /> Xử lý</button>
+                    <button className="tk-btn-action" onClick={() => setSelectedDetailTicket(t)} style={{ ...btnStyle, marginRight: t.status === 'Pending' ? '8px' : '0', background: '#e0f2fe', color: '#0284c7' }}><Eye size={16} /> Chi tiết</button>
+                    {t.status === 'Pending' && (
+                      <button className="tk-btn-action" onClick={() => setSelectedAssignTicket(t)} style={{ ...btnStyle }}><Wrench size={16} /> Xử lý</button>
+                    )}
                   </td>
                 </tr>
               );
@@ -196,7 +221,7 @@ export const IssueTickets = () => {
         </table>
 
         <div className="tk-pagination">
-          <span>Hiển thị {currentTickets.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, tickets.length)} trên {tickets.length} yêu cầu</span>
+          <span>Hiển thị {currentTickets.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredTickets.length)} trên {filteredTickets.length} yêu cầu</span>
           {totalPages > 0 && (
             <div className="tk-page-controls">
               <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
@@ -247,7 +272,7 @@ export const IssueTickets = () => {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <strong style={{ color: '#666', fontSize: '0.9rem', display: 'block' }}>Kỹ thuật viên:</strong>
-                        <span>{selectedDetailTicket.assignedTechnician ? selectedDetailTicket.assignedTechnician.fullName : 'Chưa phân công'}</span>
+                        <span style={{ color: 'blue', fontWeight: 'bold' }}>{selectedDetailTicket.assignedTechnician ? selectedDetailTicket.assignedTechnician.fullName : 'Chưa phân công'}</span>
                       </div>
                     </div>
                   </>
