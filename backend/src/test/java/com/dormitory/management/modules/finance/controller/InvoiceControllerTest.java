@@ -49,7 +49,7 @@ class InvoiceControllerTest {
                 .room(room)
                 .billingMonth(LocalDate.of(2026, 7, 1))
                 .dueDate(LocalDate.of(2026, 8, 10))
-                .paymentStatus(PaymentStatus.unpaid)
+                .paymentStatus(PaymentStatus.Unpaid)
                 .roomFee(new BigDecimal("800000"))
                 .electricityFee(new BigDecimal("100000"))
                 .waterFee(new BigDecimal("50000"))
