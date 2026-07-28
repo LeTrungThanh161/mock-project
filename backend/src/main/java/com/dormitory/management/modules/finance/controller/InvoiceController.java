@@ -6,6 +6,8 @@ import com.dormitory.management.modules.contract.repository.StudentRepository;
 import com.dormitory.management.modules.finance.entity.Invoice;
 import com.dormitory.management.modules.finance.repository.InvoiceRepository;
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +22,7 @@ public class InvoiceController {
     private final InvoiceRepository invoiceRepository;
     private final StudentRepository studentRepository;
     private final ContractRepository contractRepository;
-
+    @Autowired
     public InvoiceController(InvoiceRepository invoiceRepository,
                              StudentRepository studentRepository,
                              ContractRepository contractRepository) {

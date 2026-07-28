@@ -12,7 +12,8 @@ import vn.payos.type.PaymentData;
 import vn.payos.type.WebhookData;
 import vn.payos.type.Webhook;
 import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Tài liệu tham khảo: https://payos.vn/docs/
  *
@@ -28,7 +29,7 @@ import java.util.Map;
  */
 @Service
 public class PayOSService implements PaymentGatewayService {
-
+    private static final Logger log = LoggerFactory.getLogger(PayOSService.class);
     private final PayOS payOS;
     private final String returnUrl;
     private final String cancelUrl;
@@ -37,11 +38,27 @@ public class PayOSService implements PaymentGatewayService {
             @Value("${payos.client-id}") String clientId,
             @Value("${payos.api-key}") String apiKey,
             @Value("${payos.checksum-key}") String checksumKey,
-            @Value("${payos.return-url}") String returnUrl,
-            @Value("${payos.cancel-url}") String cancelUrl) {
-        this.payOS = new PayOS(clientId, apiKey, checksumKey);
+            @Value("${payos.return-url:http://localhost:5173/student-invoices}") String returnUrl,
+            @Value("${payos.cancel-url:http://localhost:5173/student-invoices}") String cancelUrl) {
+       PayOS tempPayOS = null;
+
+        try {
+            if (clientId != null && !clientId.isBlank() && apiKey != null && !apiKey.isBlank()) {
+                tempPayOS = new PayOS(clientId.trim(), apiKey.trim(), checksumKey.trim());
+                log.info("PayOSService được khởi tạo thành công");
+            } else {
+                log.warn("PayOS credentials không hợp lệ hoặc bị thiếu");
+            }
+        } catch (Exception e) {
+            log.error("Khởi tạo PayOS thất bại", e);
+            tempPayOS = null;
+        }
+
+        // Gán duy nhất 1 lần cho các biến final ở đây
+        this.payOS = tempPayOS;
         this.returnUrl = returnUrl;
         this.cancelUrl = cancelUrl;
+    
     }
 
     @Override
