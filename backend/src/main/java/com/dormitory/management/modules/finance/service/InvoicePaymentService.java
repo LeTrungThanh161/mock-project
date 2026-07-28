@@ -29,13 +29,14 @@ import java.util.stream.Collectors;
  *
  * 1) Tính tiền điện/nước theo biểu giá bậc thang (PricingTier)
  * 2) Sinh hóa đơn (Invoice) từ chỉ số công tơ (MeterReading)
- * 3) Tạo link thanh toán — chọn cổng linh hoạt (VNPay / MoMo) qua Strategy pattern
+ * 3) Tạo link thanh toán — chọn cổng linh hoạt (VNPay / MoMo) qua Strategy
+ * pattern
  * 4) Xử lý callback (return URL / IPN) — có xác minh chữ ký + idempotent
  * 5) Xác nhận chuyển khoản ngân hàng thủ công (staff thao tác tay)
  *
  * ⚠️ GIẢ ĐỊNH đã xác nhận theo project thực tế:
- *  - PaymentStatus: UNPAID, PAID
- *  - UtilityType: ELECTRICITY, WATER (dùng ở PricingTier.utilityType)
+ * - PaymentStatus: UNPAID, PAID
+ * - UtilityType: ELECTRICITY, WATER (dùng ở PricingTier.utilityType)
  */
 @Service
 @RequiredArgsConstructor
@@ -71,7 +72,8 @@ public class InvoicePaymentService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (PricingTier tier : tiers) {
-            if (remaining.compareTo(BigDecimal.ZERO) <= 0) break;
+            if (remaining.compareTo(BigDecimal.ZERO) <= 0)
+                break;
 
             BigDecimal tierCapacity = (tier.getToUnit() == null)
                     ? remaining // bậc cao nhất, không giới hạn trần
@@ -95,9 +97,9 @@ public class InvoicePaymentService {
     // ============================================================
     @Transactional
     public Invoice generateInvoiceFromReading(MeterReading reading,
-                                               BigDecimal roomFee,
-                                               BigDecimal internetFee,
-                                               Staff generatedByStaff) {
+            BigDecimal roomFee,
+            BigDecimal internetFee,
+            Staff generatedByStaff) {
 
         BigDecimal electricConsumption = reading.getElectricEnd().subtract(reading.getElectricStart());
         BigDecimal waterConsumption = reading.getWaterEnd().subtract(reading.getWaterStart());
@@ -106,8 +108,8 @@ public class InvoicePaymentService {
             throw new IllegalArgumentException("Chỉ số cuối không được nhỏ hơn chỉ số đầu");
         }
 
-        BigDecimal electricityFee = calculateTieredFee(UtilityType.ELECTRICITY, electricConsumption);
-        BigDecimal waterFee = calculateTieredFee(UtilityType.WATER, waterConsumption);
+        BigDecimal electricityFee = calculateTieredFee(UtilityType.Electric, electricConsumption);
+        BigDecimal waterFee = calculateTieredFee(UtilityType.Water, waterConsumption);
 
         Invoice invoice = Invoice.builder()
                 .room(reading.getRoom())
@@ -200,7 +202,8 @@ public class InvoicePaymentService {
             invoice.setTransactionRef(result.getTransactionRef());
             invoice.setPaymentDate(LocalDate.now());
         } else {
-            // Enum chỉ có UNPAID/PAID -> giữ UNPAID, xóa link cũ để tạo lại link mới khi thử lại
+            // Enum chỉ có UNPAID/PAID -> giữ UNPAID, xóa link cũ để tạo lại link mới khi
+            // thử lại
             invoice.setPaymentCheckoutUrl(null);
         }
 
@@ -212,8 +215,9 @@ public class InvoicePaymentService {
     // 4b. XỬ LÝ WEBHOOK RIÊNG CHO PAYOS (payload JSON khác cấu trúc)
     // ============================================================
     @Transactional
-    public PaymentCallbackResult handlePayOSWebhook(com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService,
-                                                      vn.payos.type.WebhookData webhookData) {
+    public PaymentCallbackResult handlePayOSWebhook(
+            com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService,
+            vn.payos.type.WebhookData webhookData) {
         PaymentCallbackResult result = payOSService.verifyWebhook(webhookData);
 
         if (!result.isSignatureValid() || result.getOrderCode() == null) {

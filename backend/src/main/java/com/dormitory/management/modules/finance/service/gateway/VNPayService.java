@@ -15,10 +15,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Tài liệu tham khảo: https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html
+ * Tài liệu tham khảo:
+ * https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html
  *
- * ⚠️ CẦN CẤU HÌNH trong application.properties (đã thêm placeholder, bạn thay giá trị thật):
- *   vnpay.tmn-code, vnpay.hash-secret, vnpay.pay-url, vnpay.return-url
+ * ⚠️ CẦN CẤU HÌNH trong application.properties (đã thêm placeholder, bạn thay
+ * giá trị thật):
+ * vnpay.tmn-code, vnpay.hash-secret, vnpay.pay-url, vnpay.return-url
  */
 @Service
 public class VNPayService implements PaymentGatewayService {
@@ -35,16 +37,18 @@ public class VNPayService implements PaymentGatewayService {
     @Value("${vnpay.return-url}")
     private String returnUrl;
 
-    @Override
-    public PaymentGateway getGateway() {
-        return PaymentGateway.VNPAY;
-    }
+    // @Override
+    // public PaymentGateway getGateway() {
+    // return PaymentGateway.VNPAY;
+    // }
 
     @Override
     public String createPaymentUrl(Invoice invoice, String clientIp) throws Exception {
-        long amount = invoice.getTotalAmount().longValue() * 100; // VNPay yêu cầu amount * 100 (không có phần thập phân)
+        long amount = invoice.getTotalAmount().longValue() * 100; // VNPay yêu cầu amount * 100 (không có phần thập
+                                                                  // phân)
         // Ghép orderCode + timestamp để mỗi lần tạo link là 1 txnRef khác nhau
-        // (VNPay yêu cầu vnp_TxnRef duy nhất trong ngày -> quan trọng khi cho thanh toán lại)
+        // (VNPay yêu cầu vnp_TxnRef duy nhất trong ngày -> quan trọng khi cho thanh
+        // toán lại)
         String txnRef = invoice.getOrderCode() + "-" + System.currentTimeMillis();
         String createDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String expireDate = LocalDateTime.now().plusMinutes(15).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -133,11 +137,13 @@ public class VNPayService implements PaymentGatewayService {
         Iterator<Map.Entry<String, String>> it = sortedParams.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, String> entry = it.next();
-            if (entry.getValue() == null || entry.getValue().isEmpty()) continue;
+            if (entry.getValue() == null || entry.getValue().isEmpty())
+                continue;
             sb.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8))
                     .append('=')
                     .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-            if (it.hasNext()) sb.append('&');
+            if (it.hasNext())
+                sb.append('&');
         }
         return sb.toString();
     }
