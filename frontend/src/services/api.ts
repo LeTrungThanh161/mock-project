@@ -50,6 +50,11 @@ export const getAvailableRooms = async () => {
   return response.data;
 };
 
+export const getBuildings = async () => {
+  const response = await api.get('/buildings');
+  return response.data;
+};
+
 export const registerRoom = async (roomId: number) => {
   const response = await api.post('/contracts/register', { roomId });
   return response.data;
@@ -62,6 +67,47 @@ export const getMyContracts = async () => {
 
 export const renewMyContract = async (contractId: number) => {
   const response = await api.post(`/contracts/my/${contractId}/renew`);
+  return response.data;
+};
+
+// ─── Admin Account Management ─────────────────────────────────────────────────
+
+export const getStaffList = async () => {
+  const response = await api.get('/admin/staff');
+  return response.data;
+};
+
+export const createManager = async (data: {
+  fullName: string; email: string; phoneNumber: string; password: string; buildingId: number | null;
+}) => {
+  const response = await api.post('/admin/staff', data);
+  return response.data;
+};
+
+export const updateStaff = async (staffId: number, data: {
+  fullName: string; phoneNumber: string; buildingId: number | null; status: string;
+}) => {
+  const response = await api.put(`/admin/staff/${staffId}`, data);
+  return response.data;
+};
+
+export const getStudentList = async (page: number, size: number, search: string, className?: string, buildingName?: string, status?: string) => {
+  const params: any = { page, size };
+  if (search) params.search = search;
+  if (className) params.className = className;
+  if (buildingName) params.buildingName = buildingName;
+  if (status) params.status = status;
+  const response = await api.get('/admin/students', { params });
+  return response.data;
+};
+
+export const resetStudentPassword = async (accountId: number) => {
+  const response = await api.post(`/admin/students/${accountId}/reset-password`);
+  return response.data;
+};
+
+export const toggleStudentStatus = async (accountId: number) => {
+  const response = await api.post(`/admin/students/${accountId}/toggle-status`);
   return response.data;
 };
 
