@@ -45,5 +45,25 @@ export const updateStudentProfile = async (data: { fullName: string; phoneNumber
   return response.data;
 };
 
+export const getAvailableRooms = async () => {
+  const response = await api.get('/rooms/available');
+  return response.data;
+};
+
+export const registerRoom = async (roomId: number) => {
+  const response = await api.post('/contracts/register', { roomId });
+  return response.data;
+};
+
+export const getMyContracts = async () => {
+  const response = await api.get('/contracts/my');
+  return response.data;
+};
+
+export const renewMyContract = async (contractId: number) => {
+  const response = await api.post(`/contracts/my/${contractId}/renew`);
+  return response.data;
+};
+
 export default api;
 

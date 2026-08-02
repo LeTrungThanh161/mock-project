@@ -13,10 +13,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * Filter 2: Sau khi JWT đã được xác thực → gọi sp_SetSecurityContext để DB tự lọc RLS.
+ * Filter 2: Sau khi JWT đã được xác thực → gọi sp_SetSecurityContext để DB tự
+ * lọc RLS.
  *
- * Lưu ý quan trọng: sp_SetSecurityContext dùng SESSION_CONTEXT gắn với connection vật lý.
- * Với connection pooling (HikariCP), phải gọi lại ở ĐẦU MỖI REQUEST để tránh dữ liệu
+ * Lưu ý quan trọng: sp_SetSecurityContext dùng SESSION_CONTEXT gắn với
+ * connection vật lý.
+ * Với connection pooling (HikariCP), phải gọi lại ở ĐẦU MỖI REQUEST để tránh dữ
+ * liệu
  * bị "rò rỉ" giữa các request khác nhau dùng chung connection.
  */
 @Slf4j
@@ -28,8 +31,8 @@ public class RlsContextFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String role = (String) request.getAttribute("role");
         Integer buildingId = (Integer) request.getAttribute("buildingId");
@@ -42,7 +45,7 @@ public class RlsContextFilter extends OncePerRequestFilter {
                     jdbcTemplate.update("EXEC dbo.sp_SetSecurityContext @Role = N'Manager', @BuildingId = ?",
                             buildingId);
                 } else if ("Student".equalsIgnoreCase(role)) {
-                    jdbcTemplate.execute("EXEC dbo.sp_SetSecurityContext @Role = N'Student'");
+                    // jdbcTemplate.execute("EXEC dbo.sp_SetSecurityContext @Role = N'Student'");
                 }
             } catch (Exception e) {
                 log.warn("Không thể set RLS context: {}", e.getMessage());

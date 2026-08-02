@@ -141,9 +141,17 @@ public class SecurityConfig {
                         // Infrastructure
                         .requestMatchers(
                                 "/api/buildings/**",
-                                "/api/rooms/**",
-                                "/api/technicians/**")
-                        .hasAnyRole("ADMIN", "MANAGER")
+                                "/api/technicians/**"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+
+                        // /api/rooms: ADMIN, MANAGER (sửa/xóa/xem), STUDENT (xem phòng trống)
+                        .requestMatchers(
+                                "/api/rooms/available"
+                        ).hasAnyRole("ADMIN", "MANAGER", "STUDENT")
+                        
+                        .requestMatchers(
+                                "/api/rooms/**"
+                        ).hasAnyRole("ADMIN", "MANAGER")
 
                         // Nghiệp vụ duyệt/xử lý (RLS tự lọc theo tòa nhà của Manager)
                         .requestMatchers(
@@ -191,8 +199,13 @@ public class SecurityConfig {
                                 "/api/invoices/my", // hóa đơn của mình
                                 "/api/issue-tickets/my", // sự cố của mình
                                 "/api/temporary-absences/my", // đơn tạm vắng của mình
-                                "/api/students/profile"
+                                "/api/students/**"
                         ).hasRole("STUDENT")
+
+                        // Đăng ký phòng
+                        .requestMatchers(
+                                "/api/contracts/register"
+                        ).hasAnyRole("STUDENT", "ADMIN", "MANAGER")
 
                         // ── [5] STUDENT — Tự nộp đơn (POST) ─────────────────────────────────
                         // Dùng @PreAuthorize trong Controller để kiểm soát chi tiết hơn

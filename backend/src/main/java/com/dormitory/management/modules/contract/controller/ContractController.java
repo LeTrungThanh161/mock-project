@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.dormitory.management.modules.contract.dto.RoomRegistrationRequest;
 
 @RestController
 @RequestMapping("/api/contracts")
@@ -25,6 +26,17 @@ public class ContractController {
     public ResponseEntity<List<ContractResponse>> getMyContracts(HttpServletRequest request) {
         Integer accountId = (Integer) request.getAttribute("accountId");
         return ResponseEntity.ok(contractService.getStudentContracts(accountId));
+    }
+
+    // Student: Gia hạn hợp đồng của mình
+    @PostMapping("/my/{id}/renew")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ContractResponse> studentRenewContract(
+            @PathVariable Integer id,
+            HttpServletRequest request) {
+        Integer accountId = (Integer) request.getAttribute("accountId");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(contractService.studentRenewContract(id, accountId));
     }
 
     // Admin/Manager: Xem danh sách hợp đồng
@@ -55,5 +67,16 @@ public class ContractController {
             HttpServletRequest request) {
         Integer staffAccountId = (Integer) request.getAttribute("accountId");
         return ResponseEntity.ok(contractService.checkout(id, staffAccountId));
+    }
+
+    // Student: Đăng ký phòng trực tuyến
+    @PostMapping("/register")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<String> registerRoom(
+            HttpServletRequest request,
+            @RequestBody RoomRegistrationRequest registerRequest) {
+        Integer accountId = (Integer) request.getAttribute("accountId");
+        contractService.registerRoom(accountId, registerRequest.getRoomId());
+        return ResponseEntity.ok("Đăng ký phòng và tạo hợp đồng thành công.");
     }
 }

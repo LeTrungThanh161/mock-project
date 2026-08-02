@@ -11,6 +11,9 @@ import com.dormitory.management.modules.contract.repository.ContractRepository;
 import com.dormitory.management.modules.contract.repository.StudentRepository;
 import com.dormitory.management.modules.infrastructure.entity.Room;
 import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
+import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
+import com.dormitory.management.constants.RoomStatus;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +87,42 @@ public class ContractService {
     }
 
     @Transactional
+    public ContractResponse studentRenewContract(Integer contractId, Integer accountId) {
+        Contract oldContract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new IllegalArgumentException("Contract not found"));
+
+        if (oldContract.getStatus() != ContractStatus.Active) {
+            throw new IllegalArgumentException("Can only renew Active contracts");
+        }
+
+        Student student = studentRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+        if (!oldContract.getStudent().getStudentId().equals(student.getStudentId())) {
+            throw new IllegalArgumentException("You can only renew your own contract");
+        }
+
+        // Hợp đồng mới bắt đầu từ ngày kết thúc hợp đồng cũ và kéo dài 6 tháng
+        Contract newContract = Contract.builder()
+                .student(oldContract.getStudent())
+                .room(oldContract.getRoom())
+                .building(oldContract.getBuilding())
+                .startDate(oldContract.getEndDate())
+                .endDate(oldContract.getEndDate().plusMonths(6))
+                .deposit(oldContract.getDeposit())
+                .status(ContractStatus.Active)
+                .previousContract(oldContract)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        oldContract.setStatus(ContractStatus.Expired);
+        contractRepository.saveAndFlush(oldContract); // flush ngay để DB cập nhật trước khi insert mới
+
+        Contract savedNewContract = contractRepository.save(newContract);
+        return mapToResponse(savedNewContract);
+    }
+
+    @Transactional
     public ContractResponse checkout(Integer contractId, Integer staffAccountId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new IllegalArgumentException("Contract not found"));
@@ -107,6 +146,40 @@ public class ContractService {
         return mapToResponse(contract);
     }
 
+    @Transactional
+    public void registerRoom(Integer accountId, Integer roomId) {
+        Student student = studentRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        if (room.getStatus() != RoomStatus.Available || room.getCurrentOccupancy() >= room.getMaxCapacity()) {
+            throw new IllegalStateException("Room is no longer available");
+        }
+
+        // Tạo hợp đồng
+        Contract contract = Contract.builder()
+                .student(student)
+                .room(room)
+                .building(room.getBuilding())
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusMonths(6)) // Mặc định 6 tháng
+                .deposit(room.getPrice()) // Tiền cọc = 1 tháng tiền phòng
+                .status(ContractStatus.Active)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        contractRepository.save(contract);
+
+        // Cập nhật số lượng người trong phòng
+        room.setCurrentOccupancy((byte) (room.getCurrentOccupancy() + 1));
+        if (room.getCurrentOccupancy() >= room.getMaxCapacity()) {
+            room.setStatus(RoomStatus.Full);
+        }
+        roomRepository.save(room);
+    }
+
     private ContractResponse mapToResponse(Contract contract) {
         return ContractResponse.builder()
                 .contractId(contract.getContractId())
@@ -117,6 +190,8 @@ public class ContractService {
                 .roomNumber(contract.getRoom().getRoomNumber())
                 .buildingId(contract.getBuilding().getBuildingId())
                 .buildingName(contract.getBuilding().getName())
+                .roomTypeName(contract.getRoom().getRoomType() != null ? contract.getRoom().getRoomType().getTypeName() : null)
+                .roomPrice(contract.getRoom().getPrice())
                 .startDate(contract.getStartDate())
                 .endDate(contract.getEndDate())
                 .deposit(contract.getDeposit())
