@@ -15,4 +15,6 @@ public class BuildingResponse {
     private String name;
     private Gender genderType;
     private Byte totalFloors;
+    private Long totalRooms;
+    private String managerName;
 }

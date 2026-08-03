@@ -57,4 +57,13 @@ public class RoomController {
     public ResponseEntity<List<Integer>> getFloorsByBuildingId(@RequestParam Integer buildingId) {
         return ResponseEntity.ok(roomService.getDistinctFloorNumbers(buildingId));
     }
+
+    // Lấy danh sách phòng trống phù hợp với giới tính của sinh viên đang đăng nhập
+    @GetMapping("/available")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<com.dormitory.management.modules.contract.dto.AvailableRoomDTO>> getAvailableRooms(
+            jakarta.servlet.http.HttpServletRequest request) {
+        Integer accountId = (Integer) request.getAttribute("accountId");
+        return ResponseEntity.ok(roomService.getAvailableRoomsForStudent(accountId));
+    }
 }

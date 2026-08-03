@@ -23,6 +23,8 @@ public class ContractResponse {
     private String roomNumber;
     private Integer buildingId;
     private String buildingName;
+    private String roomTypeName;
+    private BigDecimal roomPrice;
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal deposit;
