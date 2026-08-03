@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   User, FileText, FileSignature, Clock,
   LayoutDashboard, Building2, Users, ClipboardList,
-  Wrench, Receipt, LogOut, ChevronRight, Zap, Settings, HardHat
+  Wrench, Receipt, LogOut, ChevronRight, Zap, Settings, HardHat, Menu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../context/AuthContext';
@@ -35,6 +36,7 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     { to: '/technicians', icon: <HardHat size={18} />, label: 'Nhân viên kỹ thuật' },
   ],
   MANAGER: [
+    { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { to: '/buildings', icon: <Building2 size={18} />, label: 'Tòa nhà & Phòng' },
     { to: '/accounts', icon: <Users size={18} />, label: 'Quản lý tài khoản' },
     { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },
@@ -65,6 +67,7 @@ const ROLE_BADGE_CLASS: Record<UserRole, string> = {
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const role: UserRole = user?.role ?? 'STUDENT';
   const menuItems = MENU_ITEMS[role];
@@ -75,13 +78,16 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       {/* Header: Logo */}
       <div className="sidebar-header">
         <div className="sidebar-logo">
-          <img src={Logo} alt="Logo" width={50} height={50} />
-          <h2 className="system-logo-text">QUẢN LÝ KTX</h2>
+          <img src={Logo} alt="Logo" width={isCollapsed ? 40 : 50} height={isCollapsed ? 40 : 50} style={{ borderRadius: '50%' }} />
+          {!isCollapsed && <h2 className="system-logo-text">QUẢN LÝ KTX</h2>}
         </div>
+        <button className="collapse-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
+          <Menu size={20} />
+        </button>
       </div>
 
       {/* User Info */}
@@ -104,17 +110,17 @@ const Sidebar = () => {
             className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
           >
             {item.icon}
-            <span>{item.label}</span>
-            <ChevronRight size={14} className="nav-arrow" />
+            {!isCollapsed && <span>{item.label}</span>}
+            {!isCollapsed && <ChevronRight size={14} className="nav-arrow" />}
           </NavLink>
         ))}
       </nav>
 
       {/* Footer: Logout */}
       <div className="sidebar-footer">
-        <button className="nav-item logout-btn" onClick={handleLogout}>
+        <button className="nav-item logout-btn" onClick={handleLogout} title="Đăng xuất">
           <LogOut size={18} />
-          <span>Đăng xuất</span>
+          {!isCollapsed && <span>Đăng xuất</span>}
         </button>
       </div>
     </aside>
