@@ -1,0 +1,364 @@
+.accounts-container {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 64px);
+  padding: 24px 32px;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+  margin: -24px;
+}
+
+.accounts-container h2 {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.tabs-container {
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.tabs {
+  display: flex;
+  max-width: 600px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #94a3b8;
+  text-align: center;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.tab:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.tab:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.tab.active {
+  background: #e2e3e5;
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  color: #333;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  font-size: 14px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  min-width: 280px;
+  font-size: 14px;
+}
+
+.search-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.search-input.with-icon {
+  padding-left: 32px;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.btn-primary-blue {
+  background: #2563eb;
+  border: 1px solid #2563eb;
+  color: white;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-primary-blue:hover {
+  background: #1d4ed8;
+}
+
+.light-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #333;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.light-table th, .light-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.light-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #475569;
+}
+
+.light-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.text-success { color: #10b981; font-weight: 600; }
+.text-danger { color: #ef4444; font-weight: 600; }
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-small:hover {
+  background: #f1f5f9;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.pagination {
+  display: flex;
+  gap: 4px;
+}
+
+.pagination button, .pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+  color: #333;
+  border-radius: 4px;
+}
+
+.pagination span {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.pagination button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  font-weight: 600;
+}
+
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-size select {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  font-size: 14px;
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #f8f9fa;
+  border-radius: 8px;
+  width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 24px;
+  background: #fff;
+}
+
+.form-group-light {
+  margin-bottom: 20px;
+}
+
+.form-group-light label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group-light input[type="text"],
+.form-group-light input[type="email"],
+.form-group-light select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-group-light input:focus,
+.form-group-light select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.flex-radio {
+  display: flex;
+  flex-direction: column;
+}
+
+.radio-group {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f8f9fa;
+}
+
+.btn-outline-dark {
+  background: white;
+  border: 1px solid #94a3b8;
+  color: #333;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-outline-dark:hover {
+  background: #f1f5f9;
+}

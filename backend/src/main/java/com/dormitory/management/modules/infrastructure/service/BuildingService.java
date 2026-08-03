@@ -4,6 +4,7 @@ import com.dormitory.management.modules.infrastructure.dto.BuildingRequest;
 import com.dormitory.management.modules.infrastructure.dto.BuildingResponse;
 import com.dormitory.management.modules.infrastructure.entity.Building;
 import com.dormitory.management.modules.infrastructure.repository.BuildingRepository;
+import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
 import com.dormitory.management.modules.auth.entity.Staff;
 import com.dormitory.management.modules.auth.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class BuildingService {
 
     private final BuildingRepository buildingRepository;
+    private final RoomRepository roomRepository;
     private final StaffRepository staffRepository;
 
     public List<BuildingResponse> getAllBuildings() {
@@ -90,11 +92,22 @@ public class BuildingService {
     }
 
     private BuildingResponse mapToResponse(Building building) {
+        long totalRooms = roomRepository.countByBuilding_BuildingId(building.getBuildingId());
+        
+        // Tìm manager phụ trách tòa nhà này
+        String managerName = staffRepository.findByBuilding_BuildingId(building.getBuildingId())
+                .stream()
+                .findFirst()
+                .map(Staff::getFullName)
+                .orElse(null);
+        
         return BuildingResponse.builder()
                 .buildingId(building.getBuildingId())
                 .name(building.getName())
                 .genderType(building.getGenderType())
                 .totalFloors(building.getTotalFloors())
+                .totalRooms(totalRooms)
+                .managerName(managerName)
                 .build();
     }
 }

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import logoImg from '../assets/logo.jpg';
 import './Login.css';
+import DevRoleSwitcher from '../components/DevRoleSwitcher';
 
 const Login = () => {
   const { login } = useAuth();
@@ -108,6 +109,7 @@ const Login = () => {
           </p>
         </form>
       </div>
+      {/* <DevRoleSwitcher setUsername={setUsername} setPassword={setPassword} /> */}
     </div>
   );
 };

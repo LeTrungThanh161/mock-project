@@ -9,6 +9,9 @@ import com.dormitory.management.modules.infrastructure.entity.RoomType;
 import com.dormitory.management.modules.infrastructure.repository.BuildingRepository;
 import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
 import com.dormitory.management.modules.infrastructure.repository.RoomTypeRepository;
+import com.dormitory.management.modules.contract.repository.StudentRepository;
+import com.dormitory.management.modules.contract.entity.Student;
+import com.dormitory.management.constants.RoomStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final BuildingRepository buildingRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final StudentRepository studentRepository;
 
     public List<RoomResponse> getAllRooms(Integer buildingId) {
         List<Room> rooms;
@@ -59,15 +63,18 @@ public class RoomService {
                 .building(building)
                 .roomType(roomType)
                 .roomNumber(request.getRoomNumber())
-                .maxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity() : (roomType != null ? roomType.getDefaultCapacity() : 0))
+                .maxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity()
+                        : (roomType != null ? roomType.getDefaultCapacity() : 0))
                 .currentOccupancy((byte) 0)
-                .price(request.getPrice() != null ? request.getPrice() : (roomType != null ? roomType.getDefaultPrice() : null))
+                .price(request.getPrice() != null ? request.getPrice()
+                        : (roomType != null ? roomType.getDefaultPrice() : null))
                 .status(request.getStatus() != null ? request.getStatus() : RoomStatus.Available)
                 .build();
 
         Room savedRoom = roomRepository.save(room);
-        
-        // Cần fetch lại để DB tính toán floorNumber (computed column PERSISTED). Mặc dù Hibernate không tự lấy computed column về trừ khi Refresh/Find lại.
+
+        // Cần fetch lại để DB tính toán floorNumber (computed column PERSISTED). Mặc dù
+        // Hibernate không tự lấy computed column về trừ khi Refresh/Find lại.
         return mapToResponse(savedRoom);
     }
 
@@ -77,8 +84,10 @@ public class RoomService {
                 .orElseThrow(() -> new IllegalArgumentException("Room not found with id: " + id));
 
         // Nếu thay đổi Building hoặc RoomNumber, check xem có bị trùng không
-        if (!room.getBuilding().getBuildingId().equals(request.getBuildingId()) || !room.getRoomNumber().equals(request.getRoomNumber())) {
-            if (roomRepository.existsByBuilding_BuildingIdAndRoomNumber(request.getBuildingId(), request.getRoomNumber())) {
+        if (!room.getBuilding().getBuildingId().equals(request.getBuildingId())
+                || !room.getRoomNumber().equals(request.getRoomNumber())) {
+            if (roomRepository.existsByBuilding_BuildingIdAndRoomNumber(request.getBuildingId(),
+                    request.getRoomNumber())) {
                 throw new IllegalArgumentException("Room number already exists in this building");
             }
         }
@@ -97,7 +106,7 @@ public class RoomService {
         room.setRoomNumber(request.getRoomNumber());
         room.setMaxCapacity(request.getMaxCapacity());
         room.setPrice(request.getPrice());
-        
+
         if (request.getStatus() != null) {
             room.setStatus(request.getStatus());
         }
@@ -113,9 +122,31 @@ public class RoomService {
         }
         roomRepository.deleteById(id);
     }
-    
+
     public List<Integer> getDistinctFloorNumbers(Integer buildingId) {
         return roomRepository.findDistinctFloorNumbersByBuildingId(buildingId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.dormitory.management.modules.contract.dto.AvailableRoomDTO> getAvailableRoomsForStudent(
+            Integer accountId) {
+        Student student = studentRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+        List<Room> availableRooms = roomRepository.findAvailableRoomsForGender(
+                student.getGender(), RoomStatus.Available);
+
+        return availableRooms.stream()
+                .map(room -> com.dormitory.management.modules.contract.dto.AvailableRoomDTO.builder()
+                        .roomId(room.getRoomId())
+                        .roomNumber(room.getRoomNumber())
+                        .buildingName(room.getBuilding().getName())
+                        .roomTypeName(room.getRoomType().getTypeName())
+                        .currentOccupancy(room.getCurrentOccupancy())
+                        .maxCapacity(room.getMaxCapacity())
+                        .price(room.getPrice())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private RoomResponse mapToResponse(Room room) {

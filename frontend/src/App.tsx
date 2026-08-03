@@ -12,6 +12,10 @@ import { Technicians } from './pages/Technicians';
 import { IssueTickets } from './pages/IssueTickets';
 import { StudentInvoices } from './pages/StudentInvoices';
 import { StudentHelpdesk } from './pages/StudentHelpdesk';
+import { RoomRegistration } from './pages/RoomRegistration';
+import { Infrastructure } from './pages/Infrastructure';
+import { Contracts } from './pages/Contracts';
+import { Accounts } from './pages/Accounts';
 import './App.css';
 import { useEffect } from 'react';
 
@@ -54,14 +58,16 @@ function AppRoutes() {
         <Route path="pricing-tiers" element={<PricingTiers />} />
         <Route path="meter-readings" element={<MeterReadings />} />
         <Route path="technicians" element={<Technicians />} />
+
         {/* Placeholder routes */}
-        <Route path="buildings" element={<Dashboard />} />
+        <Route path="buildings" element={<Infrastructure />} />
         <Route path="students" element={<Dashboard />} />
+        <Route path="accounts" element={<Accounts />} />
         <Route path="applications" element={<Dashboard />} />
-        <Route path="contracts" element={<Dashboard />} />
+        <Route path="contracts" element={<Contracts />} />
         <Route path="absences" element={<Dashboard />} />
         <Route path="invoices" element={<RoleBasedInvoices />} />
-        <Route path="room-registration" element={<Dashboard />} />
+        <Route path="room-registration" element={<RoomRegistration />} />
       </Route>
     </Routes>
   );

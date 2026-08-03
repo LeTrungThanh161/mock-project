@@ -24,7 +24,7 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
   ADMIN: [
     { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { to: '/buildings', icon: <Building2 size={18} />, label: 'Tòa nhà & Phòng' },
-    { to: '/students', icon: <Users size={18} />, label: 'Sinh viên' },
+    { to: '/accounts', icon: <Users size={18} />, label: 'Quản lý tài khoản' },
     { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },
     { to: '/contracts', icon: <FileSignature size={18} />, label: 'Hợp đồng' },
     { to: '/absences', icon: <Clock size={18} />, label: 'Tạm vắng' },
@@ -36,7 +36,7 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
   ],
   MANAGER: [
     { to: '/buildings', icon: <Building2 size={18} />, label: 'Tòa nhà & Phòng' },
-    { to: '/students', icon: <Users size={18} />, label: 'Sinh viên' },
+    { to: '/accounts', icon: <Users size={18} />, label: 'Quản lý tài khoản' },
     { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },
     { to: '/contracts', icon: <FileSignature size={18} />, label: 'Hợp đồng' },
     { to: '/absences', icon: <Clock size={18} />, label: 'Tạm vắng' },

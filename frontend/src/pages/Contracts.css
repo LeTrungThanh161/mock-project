@@ -1,0 +1,112 @@
+.contracts-container {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 64px); /* Approximate height minus topbar */
+  padding: 24px 32px;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+  margin: -24px;
+}
+
+.contracts-header {
+  margin-bottom: 24px;
+}
+
+.contracts-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.status-active {
+  color: #10b981; /* Tailwind emerald-500 */
+  font-weight: 600;
+}
+
+.contract-card {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.info-group p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.info-group p strong {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 16px 0;
+}
+
+.note {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.btn-outline-dark {
+  background: white;
+  border: 1px solid #94a3b8;
+  color: #333;
+  padding: 10px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-outline-dark:hover {
+  background: #f1f5f9;
+}
+
+.btn-primary-blue {
+  background: #3b82f6;
+  border: 1px solid #3b82f6;
+  color: white;
+  padding: 10px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-primary-blue:hover {
+  background: #2563eb;
+}
