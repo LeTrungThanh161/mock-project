@@ -14,25 +14,25 @@ import java.util.Optional;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Integer> {
 
-        List<Room> findByBuilding_BuildingId(Integer buildingId);
+    List<Room> findByBuilding_BuildingId(Integer buildingId);
 
-        long countByBuilding_BuildingId(Integer buildingId);
+    long countByBuilding_BuildingId(Integer buildingId);
 
-        Optional<Room> findByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
+    Optional<Room> findByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
 
-        boolean existsByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
+    boolean existsByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
 
-        @Query("SELECT DISTINCT r.floorNumber FROM Room r WHERE r.building.buildingId = :buildingId ORDER BY r.floorNumber")
-        List<Integer> findDistinctFloorNumbersByBuildingId(@Param("buildingId") Integer buildingId);
+    @Query("SELECT DISTINCT r.floorNumber FROM Room r WHERE r.building.buildingId = :buildingId ORDER BY r.floorNumber")
+    List<Integer> findDistinctFloorNumbersByBuildingId(@Param("buildingId") Integer buildingId);
 
-        @Query("SELECT r FROM Room r " +
-                        "JOIN FETCH r.building b " +
-                        "LEFT JOIN FETCH r.roomType rt " +
-                        "WHERE r.status = :status " +
-                        "AND (b.genderType = :gender OR b.genderType = com.dormitory.management.constants.Gender.Mixed)")
-        List<Room> findAvailableRoomsForGender(
-                        @Param("gender") Gender gender,
-                        @Param("status") RoomStatus status);
-  
-        long countByStatusNot(com.dormitory.management.constants.RoomStatus status);
+    @Query("SELECT r FROM Room r " +
+            "JOIN FETCH r.building b " +
+            "LEFT JOIN FETCH r.roomType rt " +
+            "WHERE r.status = :status " +
+            "AND (b.genderType = :gender OR b.genderType = com.dormitory.management.constants.Gender.Mixed)")
+    List<Room> findAvailableRoomsForGender(
+            @Param("gender") Gender gender,
+            @Param("status") RoomStatus status);
+
+    long countByStatusNot(com.dormitory.management.constants.RoomStatus status);
 }
