@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Download, Filter, Plus, Users, CheckCircle, Clock, TrendingUp, X, Edit } from 'lucide-react';
 import './Technicians.css';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Technicians = () => {
+  const { user } = useAuth();
   const [techs, setTechs] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -136,7 +138,9 @@ export const Technicians = () => {
           <h2>Quản lý Kỹ thuật viên</h2>
           <p>Quản lý nhân sự và lịch trình hoạt động của đội ngũ kỹ thuật.</p>
         </div>
-        <button className="tech-btn-add" onClick={() => { resetForm(); setShowAddModal(true); }}><Plus size={16} /> Thêm kỹ thuật viên</button>
+        {user?.role === 'ADMIN' && (
+          <button className="tech-btn-add" onClick={() => { resetForm(); setShowAddModal(true); }}><Plus size={16} /> Thêm kỹ thuật viên</button>
+        )}
       </div>
 
       <div className="tech-stats">
@@ -216,9 +220,11 @@ export const Technicians = () => {
                   {getStatusText(t.status)}
                 </td>
                 <td style={{ textAlign: 'center' }}>
-                  <button onClick={() => openEditModal(t)} style={{ background: 'none', border: 'none', color: '#2196F3', cursor: 'pointer' }} title="Sửa thông tin">
-                    <Edit size={18} />
-                  </button>
+                  {user?.role === 'ADMIN' && (
+                    <button onClick={() => openEditModal(t)} style={{ background: 'none', border: 'none', color: '#2196F3', cursor: 'pointer' }} title="Sửa thông tin">
+                      <Edit size={18} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface IssueTicketRepository extends JpaRepository<IssueTicket, Integer> {
     List<IssueTicket> findByStudent_AccountId_AccountId(Integer accountId);
+    
+    long countByStatus(com.dormitory.management.constants.TicketStatus status);
 }
