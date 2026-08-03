@@ -41,14 +41,14 @@ public class DefaultAccountSeeder {
         Role managerRole = getOrCreateRole("Manager");
         Role studentRole = getOrCreateRole("Student");
 
-        Building defaultBuilding = buildingRepository.findByName("Tòa A")
+        Building defaultBuilding = buildingRepository.findAll().stream().findFirst()
                 .orElseGet(() -> buildingRepository.save(Building.builder()
-                        .name("Tòa A")
+                        .name("Tòa Mặc Định")
                         .genderType(Gender.Mixed)
                         .totalFloors((byte) 8)
                         .build()));
 
-        seedAccount("admin@dorm.local", "admin123", adminRole, "Nguyễn Quản Trị", "Admin", defaultBuilding);
+        seedAccount("admin@dorm.local", "admin123", adminRole, "Nguyễn Quản Trị", "Admin", null);
         seedAccount("manager@dorm.local", "manager123", managerRole, "Trần Quản Lý", "Manager", defaultBuilding);
         seedAccount("student@dorm.local", "student123", studentRole, "Lê Sinh Viên", "Student", null);
     }

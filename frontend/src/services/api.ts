@@ -111,5 +111,51 @@ export const toggleStudentStatus = async (accountId: number) => {
   return response.data;
 };
 
-export default api;
+// ─── Infrastructure Management ────────────────────────────────────────────────
 
+export const createBuilding = async (data: { name: string; genderType: string; totalFloors: number }) => {
+  const response = await api.post('/buildings', data);
+  return response.data;
+};
+
+export const updateBuilding = async (id: number, data: { name: string; genderType: string; totalFloors: number }) => {
+  const response = await api.put(`/buildings/${id}`, data);
+  return response.data;
+};
+
+export const getAllRooms = async (buildingId?: number) => {
+  const response = await api.get('/rooms', { params: buildingId ? { buildingId } : {} });
+  return response.data;
+};
+
+export const createRoom = async (data: { buildingId: number; roomTypeId: number | null; roomNumber: string; maxCapacity: number; price: number; status: string }) => {
+  const response = await api.post('/rooms', data);
+  return response.data;
+};
+
+export const updateRoom = async (id: number, data: { buildingId: number; roomTypeId: number | null; roomNumber: string; maxCapacity: number; price: number; status: string }) => {
+  const response = await api.put(`/rooms/${id}`, data);
+  return response.data;
+};
+
+export const getFloorsByBuilding = async (buildingId: number) => {
+  const response = await api.get('/rooms/floors', { params: { buildingId } });
+  return response.data;
+};
+
+export const getAllRoomTypes = async () => {
+  const response = await api.get('/room-types');
+  return response.data;
+};
+
+export const createRoomType = async (data: { typeName: string; defaultCapacity: number; defaultPrice: number }) => {
+  const response = await api.post('/room-types', data);
+  return response.data;
+};
+
+export const updateRoomType = async (id: number, data: { typeName: string; defaultCapacity: number; defaultPrice: number }) => {
+  const response = await api.put(`/room-types/${id}`, data);
+  return response.data;
+};
+
+export default api;

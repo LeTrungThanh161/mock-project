@@ -118,9 +118,12 @@ export function Accounts() {
   useEffect(() => {
     if (activeTab === 'student') {
       fetchStudents();
-      getBuildings().then(setBuildings).catch(console.error);
     }
   }, [activeTab, fetchStudents]);
+
+  useEffect(() => {
+    getBuildings().then(setBuildings).catch(console.error);
+  }, []);
 
   // ─── Handlers: Staff ─────────────────────────────────────────────────────────
 
@@ -415,13 +418,16 @@ export function Accounts() {
                 </div>
               ))}
               <div className="form-group-light">
-                <label>ID Tòa nhà phân công (để trống nếu Admin):</label>
-                <input
-                  type="number"
+                <label>Tòa nhà phân công:</label>
+                <select
                   value={createForm.buildingId}
                   onChange={e => setCreateForm(f => ({ ...f, buildingId: e.target.value }))}
-                  placeholder="VD: 1, 2, 3..."
-                />
+                >
+                  <option value="">-- Để trống nếu là Admin --</option>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="modal-footer">
@@ -456,8 +462,16 @@ export function Accounts() {
                 <input type="text" value={configForm.phoneNumber} onChange={e => setConfigForm(f => ({ ...f, phoneNumber: e.target.value }))} />
               </div>
               <div className="form-group-light">
-                <label>ID Tòa nhà phân công:</label>
-                <input type="number" value={configForm.buildingId} onChange={e => setConfigForm(f => ({ ...f, buildingId: e.target.value }))} placeholder="Để trống nếu Admin" />
+                <label>Tòa nhà phân công:</label>
+                <select
+                  value={configForm.buildingId}
+                  onChange={e => setConfigForm(f => ({ ...f, buildingId: e.target.value }))}
+                >
+                  <option value="">-- Để trống nếu là Admin --</option>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="form-group-light flex-radio">
                 <label>Trạng thái tài khoản:</label>
