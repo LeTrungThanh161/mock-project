@@ -33,4 +33,6 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
         List<Room> findAvailableRoomsForGender(
                         @Param("gender") Gender gender,
                         @Param("status") RoomStatus status);
+  
+        long countByStatusNot(com.dormitory.management.constants.RoomStatus status);
 }
