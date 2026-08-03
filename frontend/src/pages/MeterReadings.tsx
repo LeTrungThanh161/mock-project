@@ -49,7 +49,7 @@ export const MeterReadings = () => {
   const [floors, setFloors] = useState<number[]>([]);
   const [selectedFloor, setSelectedFloor] = useState<number | ''>('');
 
-  const [month, setMonth] = useState<string>('2026-06');
+  const [month, setMonth] = useState<string>('2026-07');
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
   const [readings, setReadings] = useState<UIDataRow[]>([]);

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 export const Technicians = () => {
   const { user } = useAuth();
   const [techs, setTechs] = useState<any[]>([]);
+  const [buildings, setBuildings] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -35,6 +36,12 @@ export const Technicians = () => {
 
   useEffect(() => {
     fetchTechs();
+    api.get('/buildings').then(res => {
+      setBuildings(res.data);
+      if (res.data.length > 0 && buildingId === 1) {
+        setBuildingId(res.data[0].buildingId);
+      }
+    }).catch(err => console.error("Failed to fetch buildings", err));
   }, []);
 
   const resetForm = () => {
@@ -214,7 +221,7 @@ export const Technicians = () => {
                   </div>
                 </td>
                 <td style={{ color: 'gray' }}>{t.phoneNumber}</td>
-                <td style={{ color: 'gray' }}><span className={`tech-spec-badge blue`}>Tòa {t.building?.name || `ID:${t.building?.buildingId}` || 'N/A'}</span></td>
+                <td style={{ color: 'gray' }}><span className={`tech-spec-badge blue`}> {t.building?.name || `ID:${t.building?.buildingId}` || 'N/A'}</span></td>
                 <td style={{ color: 'gray' }}>
                   <span className={`tech-status-dot ${t.status === 'Active' ? 'green' : 'red'}`}></span>
                   {getStatusText(t.status)}
@@ -263,8 +270,12 @@ export const Technicians = () => {
                 <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Tòa nhà phụ trách (ID)</label>
-                <input type="number" value={buildingId} onChange={e => setBuildingId(Number(e.target.value))} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Tòa nhà phụ trách</label>
+                <select value={buildingId} onChange={e => setBuildingId(Number(e.target.value))} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái</label>
@@ -299,25 +310,23 @@ export const Technicians = () => {
                 <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Tòa nhà phụ trách (ID)</label>
-                <input type="number" value={buildingId} onChange={e => setBuildingId(Number(e.target.value))} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
+                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Tòa nhà phụ trách</label>
+                <select value={buildingId} onChange={e => setBuildingId(Number(e.target.value))} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái</label>
-                {/* Prevent changing from Bận to Sẵn Sàng if currently Bận */}
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value)}
-                  disabled={techs.find(t => t.technicianId === editId)?.status === 'Inactive'}
-                  title={techs.find(t => t.technicianId === editId)?.status === 'Inactive' ? "Nhân viên đang làm nhiệm vụ, không thể đổi trạng thái thủ công" : ""}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: techs.find(t => t.technicianId === editId)?.status === 'Inactive' ? '#eee' : '#fff' }}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: '#fff' }}
                 >
                   <option value="Active">Sẵn Sàng (Active)</option>
                   <option value="Inactive">Bận (Busy)</option>
                 </select>
-                {techs.find(t => t.technicianId === editId)?.status === 'Inactive' && (
-                  <small style={{ color: '#f44336', marginTop: '5px', display: 'block' }}>Kỹ thuật viên đang xử lý công việc. Hệ thống sẽ tự động cập nhật khi sự cố hoàn tất.</small>
-                )}
               </div>
               <button type="submit" disabled={loading} style={{ background: '#2196F3', color: '#fff', padding: '12px', border: 'none', borderRadius: '6px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '10px', fontWeight: 'bold' }}>
                 {loading ? 'Đang lưu...' : 'Lưu thay đổi'}

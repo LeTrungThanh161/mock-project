@@ -61,8 +61,8 @@ export const IssueTickets = () => {
     setSelectedAssignTicket(null);
   };
 
-  const filteredTickets = tickets.filter(t => 
-    t.ticketId.toString().includes(searchTerm) || 
+  const filteredTickets = tickets.filter(t =>
+    t.ticketId.toString().includes(searchTerm) ||
     (t.room?.roomNumber || `Phòng ${t.room?.roomId}`).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -156,9 +156,9 @@ export const IssueTickets = () => {
             <h3 style={{ color: 'black' }}>Danh sách yêu cầu hỗ trợ</h3>
             <div className="tk-search">
               <span>🔍</span>
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm phòng, mã..." 
+              <input
+                type="text"
+                placeholder="Tìm kiếm phòng, mã..."
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               />
@@ -303,7 +303,7 @@ export const IssueTickets = () => {
                   <option value="">-- Chọn kỹ thuật viên --</option>
                   {availableTechs.map(tech => (
                     <option key={tech.technicianId} value={tech.technicianId}>
-                      {tech.fullName} - Tòa {tech.building?.name || tech.building?.buildingId}
+                      {tech.fullName} - {tech.building?.name || tech.building?.buildingId}
                     </option>
                   ))}
                   {availableTechs.length === 0 && <option value="" disabled>Không có KTV sẵn sàng</option>}
