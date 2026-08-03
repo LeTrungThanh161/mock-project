@@ -18,4 +18,6 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT r.floorNumber FROM Room r WHERE r.building.buildingId = :buildingId ORDER BY r.floorNumber")
     List<Integer> findDistinctFloorNumbersByBuildingId(@org.springframework.data.repository.query.Param("buildingId") Integer buildingId);
+    
+    long countByStatusNot(com.dormitory.management.constants.RoomStatus status);
 }

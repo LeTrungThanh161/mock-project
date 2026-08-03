@@ -35,7 +35,7 @@ const Dashboard = () => {
   return (
     <div className="dash-container">
       <div className="dash-header">
-        <h2>Dashboard Thống kê</h2>
+        <h2>Thống kê</h2>
       </div>
 
       <div className="dash-stats-row">
@@ -63,7 +63,7 @@ const Dashboard = () => {
           </div>
           <h3>{stats?.activeRooms || 0} / {stats?.totalRooms || 0}</h3>
           <div className="dash-progress-bg">
-            <div className="dash-progress-fill" style={{ width: `${stats ? (stats.activeRooms/stats.totalRooms)*100 : 0}%` }}></div>
+            <div className="dash-progress-fill" style={{ width: `${stats ? (stats.activeRooms / stats.totalRooms) * 100 : 0}%` }}></div>
           </div>
         </div>
 
