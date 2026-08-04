@@ -50,20 +50,6 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
   ],
 };
 
-// Label hiển thị dễ đọc cho Role
-const ROLE_LABELS: Record<UserRole, string> = {
-  STUDENT: 'Sinh viên',
-  ADMIN: 'Quản trị viên',
-  MANAGER: 'Quản lý',
-};
-
-// Màu badge theo Role
-const ROLE_BADGE_CLASS: Record<UserRole, string> = {
-  STUDENT: 'role-badge student',
-  ADMIN: 'role-badge admin',
-  MANAGER: 'role-badge manager',
-};
-
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();

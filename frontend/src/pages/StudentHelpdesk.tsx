@@ -1,11 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
-import { UploadCloud, MessageSquare, X, CheckCircle } from 'lucide-react';
+import { UploadCloud, X, CheckCircle } from 'lucide-react';
 import './StudentHelpdesk.css';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 export const StudentHelpdesk = () => {
-  const { user } = useAuth();
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Filter, Plus, Users, CheckCircle, Clock, TrendingUp, X, Edit } from 'lucide-react';
+import { Plus, Users, CheckCircle, Clock, TrendingUp, X, Edit } from 'lucide-react';
 import './Technicians.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';

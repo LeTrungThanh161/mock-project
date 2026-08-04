@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAvailableRooms, registerRoom } from '../services/api';
 import './RoomRegistration.css';
 
@@ -13,6 +14,7 @@ interface RoomDTO {
 }
 
 export const RoomRegistration = () => {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<RoomDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,14 +70,19 @@ export const RoomRegistration = () => {
     if (!selectedRoom) return;
     try {
       setRegistering(true);
-      await registerRoom(selectedRoom.roomId);
-      alert('Đăng ký phòng thành công!');
+      const result = await registerRoom(selectedRoom.roomId);
+      const paymentUrl = result?.paymentUrl;
+      alert(result?.message || 'Đăng ký phòng thành công!');
       setShowModal(false);
       setSelectedRoom(null);
-      fetchRooms(); // refresh list
+      if (paymentUrl) {
+        window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+      }
+      navigate('/invoices');
+      fetchRooms();
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data || 'Có lỗi xảy ra khi đăng ký phòng.');
+      alert(err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra khi đăng ký phòng.');
     } finally {
       setRegistering(false);
     }

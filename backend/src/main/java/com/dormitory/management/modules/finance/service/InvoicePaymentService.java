@@ -1,9 +1,14 @@
 package com.dormitory.management.modules.finance.service;
 
+import com.dormitory.management.constants.ContractStatus;
 import com.dormitory.management.constants.PaymentGateway;
 import com.dormitory.management.constants.PaymentStatus;
 import com.dormitory.management.constants.UtilityType;
 import com.dormitory.management.modules.auth.entity.Staff;
+import com.dormitory.management.modules.contract.entity.Contract;
+import com.dormitory.management.modules.contract.repository.ContractRepository;
+import com.dormitory.management.modules.infrastructure.entity.Room;
+import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
 import com.dormitory.management.modules.finance.dto.PaymentCallbackResult;
 import com.dormitory.management.modules.finance.entity.Invoice;
 import com.dormitory.management.modules.finance.entity.MeterReading;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +50,8 @@ public class InvoicePaymentService {
 
     private final InvoiceRepository invoiceRepository;
     private final PricingTierRepository pricingTierRepository;
+    private final ContractRepository contractRepository;
+    private final RoomRepository roomRepository;
     private final List<PaymentGatewayService> gatewayServiceList; // Spring tự inject mọi bean implement interface
 
     private Map<PaymentGateway, PaymentGatewayService> gatewayMap;
@@ -202,9 +210,8 @@ public class InvoicePaymentService {
             invoice.setTransactionRef(result.getTransactionRef());
             invoice.setPaymentDate(LocalDate.now());
         } else {
-            // Enum chỉ có UNPAID/PAID -> giữ UNPAID, xóa link cũ để tạo lại link mới khi
-            // thử lại
             invoice.setPaymentCheckoutUrl(null);
+            rollbackPendingRegistration(invoice);
         }
 
         invoiceRepository.save(invoice);
@@ -245,6 +252,29 @@ public class InvoicePaymentService {
 
         invoiceRepository.save(invoice);
         return result;
+    }
+
+    private void rollbackPendingRegistration(Invoice invoice) {
+        if (invoice.getRoom() == null || invoice.getRoom().getRoomId() == null) {
+            return;
+        }
+
+        List<Contract> pendingContracts = contractRepository
+                .findByRoom_RoomIdAndStatusOrderByCreatedAtDesc(invoice.getRoom().getRoomId(), ContractStatus.Active);
+
+        pendingContracts.stream()
+                .filter(contract -> contract.getCreatedAt() != null)
+                .filter(contract -> !contract.getCreatedAt().isBefore(LocalDateTime.now().minusMinutes(10)))
+                .findFirst()
+                .ifPresent(contract -> {
+                    contractRepository.delete(contract);
+                    invoiceRepository.delete(invoice);
+                    Room room = contract.getRoom();
+                    if (room != null && room.getCurrentOccupancy() > 0) {
+                        room.setCurrentOccupancy((byte) (room.getCurrentOccupancy() - 1));
+                        roomRepository.save(room);
+                    }
+                });
     }
 
     // ============================================================

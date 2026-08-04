@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Filter, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import './MeterReadings.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -53,9 +53,8 @@ export const MeterReadings = () => {
 
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
   const [readings, setReadings] = useState<UIDataRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [initialFetched, setInitialFetched] = useState(false);
 
   // Logic kiểm tra nếu chưa qua tháng hiện tại (selected > current month) thì không cho nhập
   const currentDate = new Date();

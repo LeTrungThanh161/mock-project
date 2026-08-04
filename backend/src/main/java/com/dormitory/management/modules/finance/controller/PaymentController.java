@@ -8,9 +8,11 @@ import com.dormitory.management.modules.finance.service.gateway.PayOSService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.payos.type.Webhook;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -53,9 +55,14 @@ public class PaymentController {
      * chỉ dùng để hiển thị kết quả cho người dùng — trạng thái CHÍNH THỨC phải dựa vào IPN ở dưới).
      */
     @GetMapping("/callback/vnpay/return")
-    public ResponseEntity<PaymentCallbackResult> vnpayReturn(@RequestParam Map<String, String> allParams) {
+    public ResponseEntity<Void> vnpayReturn(@RequestParam Map<String, String> allParams) {
         PaymentCallbackResult result = invoicePaymentService.handleGatewayCallback(PaymentGateway.VNPAY, allParams);
-        return ResponseEntity.ok(result);
+        String redirectUrl = result.isSignatureValid() && result.isSuccess()
+                ? "http://localhost:5173/contracts?payment=success"
+                : "http://localhost:5173/contracts?payment=failed";
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
+                .build();
     }
 
     /**

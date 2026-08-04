@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Wrench, Eye, CheckCircle, Clock, X } from 'lucide-react';
+import { Wrench, Eye, X } from 'lucide-react';
 import './IssueTickets.css';
 import api from '../services/api';
 

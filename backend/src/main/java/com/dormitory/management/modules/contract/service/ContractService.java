@@ -1,24 +1,30 @@
 package com.dormitory.management.modules.contract.service;
 
 import com.dormitory.management.constants.ContractStatus;
+import com.dormitory.management.constants.PaymentGateway;
+import com.dormitory.management.constants.PaymentStatus;
+import com.dormitory.management.constants.RoomStatus;
 import com.dormitory.management.modules.auth.entity.Staff;
 import com.dormitory.management.modules.auth.repository.StaffRepository;
 import com.dormitory.management.modules.contract.dto.ContractResponse;
+import com.dormitory.management.modules.contract.dto.RegistrationResult;
 import com.dormitory.management.modules.contract.dto.RenewContractRequest;
 import com.dormitory.management.modules.contract.entity.Contract;
 import com.dormitory.management.modules.contract.entity.Student;
 import com.dormitory.management.modules.contract.repository.ContractRepository;
 import com.dormitory.management.modules.contract.repository.StudentRepository;
+import com.dormitory.management.modules.finance.entity.Invoice;
+import com.dormitory.management.modules.finance.repository.InvoiceRepository;
+import com.dormitory.management.modules.finance.service.InvoicePaymentService;
 import com.dormitory.management.modules.infrastructure.entity.Room;
 import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
-import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
-import com.dormitory.management.constants.RoomStatus;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +36,8 @@ public class ContractService {
     private final StudentRepository studentRepository;
     private final StaffRepository staffRepository;
     private final RoomRepository roomRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final InvoicePaymentService invoicePaymentService;
 
     public List<ContractResponse> getStudentContracts(Integer accountId) {
         Student student = studentRepository.findByAccountId(accountId)
@@ -147,7 +155,7 @@ public class ContractService {
     }
 
     @Transactional
-    public void registerRoom(Integer accountId, Integer roomId) {
+    public RegistrationResult registerRoom(Integer accountId, Integer roomId) throws Exception {
         Student student = studentRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
@@ -158,26 +166,46 @@ public class ContractService {
             throw new IllegalStateException("Room is no longer available");
         }
 
-        // Tạo hợp đồng
         Contract contract = Contract.builder()
                 .student(student)
                 .room(room)
                 .building(room.getBuilding())
                 .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusMonths(6)) // Mặc định 6 tháng
-                .deposit(room.getPrice()) // Tiền cọc = 1 tháng tiền phòng
+                .endDate(LocalDate.now().plusMonths(6))
+                .deposit(room.getPrice())
                 .status(ContractStatus.Active)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         contractRepository.save(contract);
 
-        // Cập nhật số lượng người trong phòng
         room.setCurrentOccupancy((byte) (room.getCurrentOccupancy() + 1));
         if (room.getCurrentOccupancy() >= room.getMaxCapacity()) {
             room.setStatus(RoomStatus.Full);
         }
         roomRepository.save(room);
+
+        Invoice invoice = Invoice.builder()
+                .room(room)
+                .building(room.getBuilding())
+                .billingMonth(LocalDate.now().withDayOfMonth(1))
+                .roomFee(room.getPrice())
+                .electricityFee(BigDecimal.ZERO)
+                .waterFee(BigDecimal.ZERO)
+                .internetFee(BigDecimal.ZERO)
+                .dueDate(LocalDate.now().plusDays(7))
+                .paymentStatus(PaymentStatus.Unpaid)
+                .build();
+
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        String paymentUrl = invoicePaymentService.createPaymentUrl(savedInvoice.getInvoiceId(), PaymentGateway.VNPAY, "127.0.0.1");
+
+        return RegistrationResult.builder()
+                .message("Đăng ký phòng và tạo hợp đồng thành công.")
+                .contractId(contract.getContractId())
+                .invoiceId(savedInvoice.getInvoiceId())
+                .paymentUrl(paymentUrl)
+                .build();
     }
 
     private ContractResponse mapToResponse(Contract contract) {

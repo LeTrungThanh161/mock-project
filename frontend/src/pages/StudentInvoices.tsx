@@ -29,7 +29,8 @@ export const StudentInvoices = () => {
     const loadInvoices = async () => {
       try {
         const response = await api.get('/invoices/my');
-        const mapped = (response.data || []).map((item: any) => ({
+        const items = Array.isArray(response?.data) ? response.data : (response?.data?.items || []);
+        const mapped = items.map((item: any) => ({
           invoiceId: item.invoiceId,
           id: `INV-${item.invoiceId}`,
           period: `Tháng ${new Date(item.billingMonth).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}`,
@@ -95,6 +96,7 @@ export const StudentInvoices = () => {
           <h2>Hóa đơn điện nước</h2>
           {loading && <p>Đang tải hóa đơn...</p>}
           {error && <p className="text-danger">{error}</p>}
+          {!loading && !error && invoices.length === 0 && <p>Chưa có hóa đơn nào.</p>}
           <div className="si-list">
             {invoices.map((inv) => (
               <div

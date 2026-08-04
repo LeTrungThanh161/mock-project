@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -59,7 +60,14 @@ public class VNPayService implements PaymentGatewayService {
                     "Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
         }
 
-        long amount = invoice.getTotalAmount().longValue() * 100;
+        BigDecimal totalAmount = invoice.getTotalAmount();
+        if (totalAmount == null) {
+            totalAmount = (invoice.getRoomFee() == null ? BigDecimal.ZERO : invoice.getRoomFee())
+                    .add(invoice.getElectricityFee() == null ? BigDecimal.ZERO : invoice.getElectricityFee())
+                    .add(invoice.getWaterFee() == null ? BigDecimal.ZERO : invoice.getWaterFee())
+                    .add(invoice.getInternetFee() == null ? BigDecimal.ZERO : invoice.getInternetFee());
+        }
+        long amount = totalAmount.longValue() * 100;
         String txnRef = invoice.getOrderCode() + "-" + System.currentTimeMillis();
         String createDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String expireDate = LocalDateTime.now().plusMinutes(15).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));

@@ -72,11 +72,10 @@ public class ContractController {
     // Student: Đăng ký phòng trực tuyến
     @PostMapping("/register")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<String> registerRoom(
+    public ResponseEntity<?> registerRoom(
             HttpServletRequest request,
-            @RequestBody RoomRegistrationRequest registerRequest) {
+            @RequestBody RoomRegistrationRequest registerRequest) throws Exception {
         Integer accountId = (Integer) request.getAttribute("accountId");
-        contractService.registerRoom(accountId, registerRequest.getRoomId());
-        return ResponseEntity.ok("Đăng ký phòng và tạo hợp đồng thành công.");
+        return ResponseEntity.ok(contractService.registerRoom(accountId, registerRequest.getRoomId()));
     }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getMyContracts, renewMyContract } from '../services/api';
 import './Contracts.css';
 
@@ -23,8 +23,17 @@ export function Contracts() {
     const [contract, setContract] = useState<Contract | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [paymentHint, setPaymentHint] = useState<string | null>(null);
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const paymentState = params.get('payment');
+        if (paymentState === 'success') {
+            setPaymentHint('Thanh toán thành công. Hợp đồng của bạn đã được kích hoạt.');
+        } else if (paymentState === 'failed') {
+            setPaymentHint('Thanh toán chưa thành công, hệ thống đã hủy bước đăng ký và giữ bạn ở trạng thái chưa kích hoạt.');
+        }
+
         const fetchContract = async () => {
             try {
                 const data = await getMyContracts();
@@ -95,6 +104,11 @@ export function Contracts() {
 
     return (
         <div className="contracts-container">
+            {paymentHint && (
+                <div className="contract-card" style={{ marginBottom: '16px', borderColor: paymentHint.includes('thành công') ? '#10b981' : '#f59e0b' }}>
+                    <p style={{ margin: 0, color: paymentHint.includes('thành công') ? '#10b981' : '#f59e0b' }}>{paymentHint}</p>
+                </div>
+            )}
             <div className="contracts-header">
                 <h2>THÔNG TIN HỢP ĐỒNG HIỆN TẠI</h2>
                 <div className="status">

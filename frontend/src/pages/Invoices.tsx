@@ -12,7 +12,8 @@ export const Invoices = () => {
     const loadInvoices = async () => {
       try {
         const response = await api.get('/invoices');
-        const mapped = (response.data || []).map((item: any) => {
+        const items = Array.isArray(response?.data) ? response.data : (response?.data?.items || []);
+        const mapped = items.map((item: any) => {
           const dueDate = item.dueDate ? new Date(item.dueDate) : null;
           const today = new Date();
           const daysLate = dueDate ? Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))) : 0;
@@ -55,6 +56,7 @@ export const Invoices = () => {
 
       {error && <div className="inv-banner" style={{ borderColor: '#f59e0b' }}><p>{error}</p></div>}
       {loading && <p>Đang tải dữ liệu hóa đơn...</p>}
+      {!loading && invoices.length === 0 && <div className="inv-banner"><p>Chưa có hóa đơn nào để hiển thị.</p></div>}
 
       <div className="inv-banner">
         <div>
