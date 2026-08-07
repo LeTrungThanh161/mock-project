@@ -46,7 +46,8 @@ public class AdminController {
 
     // ─── Students ────────────────────────────────────────────────────────────
 
-    // GET /api/admin/students?page=0&size=10&search=... — danh sách sinh viên có phân trang
+    // GET /api/admin/students?page=0&size=10&search=... — danh sách sinh viên có
+    // phân trang
     @GetMapping("/students")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<StudentAccountResponse>> getAllStudents(
@@ -55,11 +56,14 @@ public class AdminController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String buildingName,
-            @RequestParam(required = false) com.dormitory.management.constants.AccountStatus status) {
-        return ResponseEntity.ok(adminAccountService.getAllStudents(page, size, search, className, buildingName, status));
+            @RequestParam(required = false) com.dormitory.management.constants.AccountStatus status,
+            @RequestParam(required = false) Boolean hasRoom) {
+        return ResponseEntity
+                .ok(adminAccountService.getAllStudents(page, size, search, className, buildingName, status, hasRoom));
     }
 
-    // POST /api/admin/students/{accountId}/reset-password — reset mật khẩu về "123456"
+    // POST /api/admin/students/{accountId}/reset-password — reset mật khẩu về
+    // "123456"
     @PostMapping("/students/{accountId}/reset-password")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> resetStudentPassword(@PathVariable Integer accountId) {
@@ -67,7 +71,8 @@ public class AdminController {
         return ResponseEntity.ok("Đặt lại mật khẩu thành công. Mật khẩu mới: 123456");
     }
 
-    // POST /api/admin/students/{accountId}/toggle-status — khóa/mở khóa tài khoản Student
+    // POST /api/admin/students/{accountId}/toggle-status — khóa/mở khóa tài khoản
+    // Student
     @PostMapping("/students/{accountId}/toggle-status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StudentAccountResponse> toggleStudentStatus(@PathVariable Integer accountId) {

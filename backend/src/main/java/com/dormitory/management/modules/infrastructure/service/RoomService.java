@@ -28,9 +28,11 @@ public class RoomService {
     private final RoomTypeRepository roomTypeRepository;
     private final StudentRepository studentRepository;
 
-    public List<RoomResponse> getAllRooms(Integer buildingId) {
+    public List<RoomResponse> getAllRooms(Integer buildingId, Byte floorNumber) {
         List<Room> rooms;
-        if (buildingId != null) {
+        if (buildingId != null && floorNumber != null) {
+            rooms = roomRepository.findByBuilding_BuildingIdAndFloorNumber(buildingId, floorNumber);
+        } else if (buildingId != null) {
             rooms = roomRepository.findByBuilding_BuildingId(buildingId);
         } else {
             rooms = roomRepository.findAll();
@@ -123,7 +125,7 @@ public class RoomService {
         roomRepository.deleteById(id);
     }
 
-    public List<Integer> getDistinctFloorNumbers(Integer buildingId) {
+    public List<Byte> getDistinctFloorNumbers(Integer buildingId) {
         return roomRepository.findDistinctFloorNumbersByBuildingId(buildingId);
     }
 

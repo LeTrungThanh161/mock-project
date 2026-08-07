@@ -91,12 +91,13 @@ export const updateStaff = async (staffId: number, data: {
   return response.data;
 };
 
-export const getStudentList = async (page: number, size: number, search: string, className?: string, buildingName?: string, status?: string) => {
+export const getStudentList = async (page: number, size: number, search: string, className?: string, buildingName?: string, status?: string, hasRoom?: string) => {
   const params: any = { page, size };
   if (search) params.search = search;
   if (className) params.className = className;
   if (buildingName) params.buildingName = buildingName;
   if (status) params.status = status;
+  if (hasRoom) params.hasRoom = hasRoom === 'true';
   const response = await api.get('/admin/students', { params });
   return response.data;
 };
@@ -123,8 +124,11 @@ export const updateBuilding = async (id: number, data: { name: string; genderTyp
   return response.data;
 };
 
-export const getAllRooms = async (buildingId?: number) => {
-  const response = await api.get('/rooms', { params: buildingId ? { buildingId } : {} });
+export const getAllRooms = async (buildingId?: number, floorNumber?: number) => {
+  const params: any = {};
+  if (buildingId) params.buildingId = buildingId;
+  if (floorNumber !== undefined) params.floorNumber = floorNumber;
+  const response = await api.get('/rooms', { params });
   return response.data;
 };
 

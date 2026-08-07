@@ -115,9 +115,10 @@ public class AdminAccountService {
 
     // ─── STUDENT ─────────────────────────────────────────────────────────────
 
-    public Page<StudentAccountResponse> getAllStudents(int page, int size, String search, String className, String buildingName, AccountStatus status) {
+    public Page<StudentAccountResponse> getAllStudents(int page, int size, String search, String className,
+            String buildingName, AccountStatus status, Boolean hasRoom) {
         List<Student> all = studentRepository.findAll();
-        
+
         // Map to Response first to make filtering by building easier
         List<StudentAccountResponse> allResponses = all.stream()
                 .map(this::mapStudentToResponse)
@@ -147,12 +148,22 @@ public class AdminAccountService {
                     .filter(s -> s.getStatus() == status)
                     .collect(Collectors.toList());
         }
-        
+
         // Lọc theo tòa nhà
         if (buildingName != null && !buildingName.isBlank()) {
             String bName = buildingName.toLowerCase().trim();
             allResponses = allResponses.stream()
                     .filter(s -> s.getBuildingName() != null && s.getBuildingName().toLowerCase().contains(bName))
+                    .collect(Collectors.toList());
+        }
+
+        // Lọc theo tình trạng xếp phòng
+        if (hasRoom != null) {
+            allResponses = allResponses.stream()
+                    .filter(s -> {
+                        boolean assigned = s.getRoomNumber() != null && !s.getRoomNumber().isEmpty();
+                        return hasRoom ? assigned : !assigned;
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -172,7 +183,7 @@ public class AdminAccountService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
         // Reset về mật khẩu mặc định: "123456"
-        account.setPasswordHash(passwordEncoder.encode("123456"));
+        account.setPasswordHash(passwordEncoder.encode("12345678"));
         account.setUpdatedAt(LocalDateTime.now());
         accountRepository.save(account);
     }

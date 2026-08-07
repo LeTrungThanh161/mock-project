@@ -59,11 +59,12 @@ export function Accounts() {
   const [pageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  
+
   // ── Extra filters ──
   const [filterClassName, setFilterClassName] = useState('');
   const [filterBuildingName, setFilterBuildingName] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterHasRoom, setFilterHasRoom] = useState('');
   const [buildings, setBuildings] = useState<BuildingItem[]>([]);
 
   const [studentLoading, setStudentLoading] = useState(false);
@@ -106,14 +107,14 @@ export function Accounts() {
   const fetchStudents = useCallback(async () => {
     setStudentLoading(true);
     try {
-      const data = await getStudentList(currentPage, pageSize, search, filterClassName, filterBuildingName, filterStatus);
+      const data = await getStudentList(currentPage, pageSize, search, filterClassName, filterBuildingName, filterStatus, filterHasRoom);
       setStudentPage(data);
     } catch (err) {
       console.error(err);
     } finally {
       setStudentLoading(false);
     }
-  }, [currentPage, pageSize, search, filterClassName, filterBuildingName, filterStatus]);
+  }, [currentPage, pageSize, search, filterClassName, filterBuildingName, filterStatus, filterHasRoom]);
 
   useEffect(() => {
     if (activeTab === 'student') {
@@ -293,31 +294,32 @@ export function Accounts() {
       {/* ── Tab Sinh viên ───────────────────────────────────────────────────── */}
       {activeTab === 'student' && (
         <div className="tab-content">
-          <div className="filters" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <div className="search-wrapper" style={{ flex: '1 1 300px' }}>
+          <div className="filters" style={{ display: 'flex', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '4px' }}>
+            <div className="search-wrapper" style={{ flex: '1 1 auto', minWidth: '200px' }}>
               <span className="search-icon">🔍</span>
               <input
                 type="text"
                 placeholder="Tìm theo MSSV, Tên, Email..."
                 className="search-input with-icon"
+                style={{ width: '100%', minWidth: 'unset' }}
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            
+
             <input
               type="text"
               placeholder="Lớp..."
               className="search-input"
-              style={{ width: '120px' }}
+              style={{ width: '200px', minWidth: '100px', flexShrink: 0 }}
               value={filterClassName}
               onChange={e => { setFilterClassName(e.target.value); setCurrentPage(0); }}
             />
-            
-            <select 
-              className="search-input" 
-              style={{ width: '150px', cursor: 'pointer' }}
+
+            <select
+              className="search-input"
+              style={{ width: '200px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
               value={filterBuildingName}
               onChange={e => { setFilterBuildingName(e.target.value); setCurrentPage(0); }}
             >
@@ -327,9 +329,9 @@ export function Accounts() {
               ))}
             </select>
 
-            <select 
-              className="search-input" 
-              style={{ width: '150px', cursor: 'pointer' }}
+            <select
+              className="search-input"
+              style={{ width: '200px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
               value={filterStatus}
               onChange={e => { setFilterStatus(e.target.value); setCurrentPage(0); }}
             >
@@ -339,7 +341,18 @@ export function Accounts() {
               <option value="Inactive">Inactive</option>
             </select>
 
-            <button className="btn-primary-blue" onClick={handleSearch}>Tìm kiếm</button>
+            <select
+              className="search-input"
+              style={{ width: '220px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
+              value={filterHasRoom}
+              onChange={e => { setFilterHasRoom(e.target.value); setCurrentPage(0); }}
+            >
+              <option value="">Tất cả sinh viên</option>
+              <option value="true">Đã xếp phòng</option>
+              <option value="false">Chưa xếp phòng</option>
+            </select>
+
+            <button className="btn-primary-blue" style={{ flexShrink: 0 }} onClick={handleSearch}>Tìm kiếm</button>
           </div>
 
           <table className="light-table">

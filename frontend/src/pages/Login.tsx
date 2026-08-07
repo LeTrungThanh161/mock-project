@@ -89,14 +89,6 @@ const Login = () => {
           </div>
 
           <div className="login-row">
-            <label className="login-remember">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-              />
-              <span>Ghi nhớ đăng nhập</span>
-            </label>
             <a href="#" className="login-forgot">Quên mật khẩu?</a>
           </div>
 

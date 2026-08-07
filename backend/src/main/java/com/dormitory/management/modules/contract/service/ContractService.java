@@ -190,14 +190,17 @@ public class ContractService {
                 .roomNumber(contract.getRoom().getRoomNumber())
                 .buildingId(contract.getBuilding().getBuildingId())
                 .buildingName(contract.getBuilding().getName())
-                .roomTypeName(contract.getRoom().getRoomType() != null ? contract.getRoom().getRoomType().getTypeName() : null)
+                .roomTypeName(contract.getRoom().getRoomType() != null ? contract.getRoom().getRoomType().getTypeName()
+                        : null)
                 .roomPrice(contract.getRoom().getPrice())
                 .startDate(contract.getStartDate())
                 .endDate(contract.getEndDate())
                 .deposit(contract.getDeposit())
                 .status(contract.getStatus())
-                .previousContractId(contract.getPreviousContract() != null ? contract.getPreviousContract().getContractId() : null)
-                .createdByStaffId(contract.getCreatedByStaff() != null ? contract.getCreatedByStaff().getStaffId() : null)
+                .previousContractId(
+                        contract.getPreviousContract() != null ? contract.getPreviousContract().getContractId() : null)
+                .createdByStaffId(
+                        contract.getCreatedByStaff() != null ? contract.getCreatedByStaff().getStaffId() : null)
                 .createdAt(contract.getCreatedAt())
                 .actualCheckoutDate(contract.getActualCheckoutDate())
                 .build();
