@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAvailableRooms, registerRoom, getMyContracts } from '../services/api';
 import './RoomRegistration.css';
 
