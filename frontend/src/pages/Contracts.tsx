@@ -146,8 +146,15 @@ export function Contracts() {
             <div className="contracts-header">
                 <h2>THÔNG TIN HỢP ĐỒNG HIỆN TẠI</h2>
                 <div className="status">
-                    Trạng thái cư trú: <span className="status-active" style={{ color: contract.status === 'ACTIVE' ? '#10b981' : '#f59e0b' }}>
-                        [ {contract.status === 'ACTIVE' ? 'ĐANG HIỆU LỰC' : contract.status} ]
+                    Trạng thái hợp đồng: <span className="status-active" style={{
+                        color: contract.status.toUpperCase() === 'ACTIVE' ? '#10b981' :
+                            contract.status.toUpperCase() === 'TERMINATED' ? '#ef4444' :
+                                '#f59e0b'
+                    }}>
+                        [ {contract.status.toUpperCase() === 'ACTIVE' ? 'ACTIVE' :
+                            contract.status.toUpperCase() === 'TERMINATED' ? 'TERMINATED' :
+                                contract.status.toUpperCase() === 'EXPIRED' ? 'EXPIRED' :
+                                    contract.status.toUpperCase() === 'INACTIVE' ? 'INACTIVE' : contract.status} ]
                     </span>
                 </div>
             </div>
