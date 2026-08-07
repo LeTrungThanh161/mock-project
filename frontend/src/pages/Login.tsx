@@ -38,8 +38,13 @@ const Login = () => {
       // Điều hướng theo role
       if (normalizedRole === 'STUDENT') navigate('/profile');
       else navigate('/dashboard');
-    } catch {
-      setError('Tài khoản hoặc mật khẩu không chính xác.');
+    } catch (err: any) {
+      const backendMsg = err.response?.data?.message;
+      if (backendMsg) {
+        setError(backendMsg);
+      } else {
+        setError('Tài khoản hoặc mật khẩu không chính xác.');
+      }
     } finally {
       setLoading(false);
     }
@@ -88,15 +93,7 @@ const Login = () => {
           </div>
 
           <div className="login-row">
-            <label className="login-remember">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-              />
-              <span>Ghi nhớ đăng nhập</span>
-            </label>
-            <a href="#" className="login-forgot">Quên mật khẩu?</a>
+            <Link to="/forgot-password" className="login-forgot">Quên mật khẩu?</Link>
           </div>
 
           <button type="submit" className="login-btn" disabled={loading}>

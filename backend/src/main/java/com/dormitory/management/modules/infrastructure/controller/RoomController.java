@@ -18,10 +18,12 @@ public class RoomController {
 
     private final RoomService roomService;
 
-    // Lấy danh sách phòng, hỗ trợ lọc theo buildingId
+    // Lấy danh sách phòng, hỗ trợ lọc theo buildingId và floorNumber
     @GetMapping
-    public ResponseEntity<List<RoomResponse>> getAllRooms(@RequestParam(required = false) Integer buildingId) {
-        return ResponseEntity.ok(roomService.getAllRooms(buildingId));
+    public ResponseEntity<List<RoomResponse>> getAllRooms(
+            @RequestParam(required = false) Integer buildingId,
+            @RequestParam(required = false) Byte floorNumber) {
+        return ResponseEntity.ok(roomService.getAllRooms(buildingId, floorNumber));
     }
 
     @GetMapping("/{id}")
@@ -54,7 +56,7 @@ public class RoomController {
     
     // Lấy danh sách các tầng của một tòa nhà
     @GetMapping("/floors")
-    public ResponseEntity<List<Integer>> getFloorsByBuildingId(@RequestParam Integer buildingId) {
+    public ResponseEntity<List<Byte>> getFloorsByBuildingId(@RequestParam Integer buildingId) {
         return ResponseEntity.ok(roomService.getDistinctFloorNumbers(buildingId));
     }
 

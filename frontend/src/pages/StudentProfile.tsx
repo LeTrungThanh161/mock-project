@@ -45,6 +45,24 @@ const StudentProfile = () => {
     if (!isEditing) {
       setIsEditing(true);
     } else {
+      // Validate không được để trống
+      if (!formData.fullName.trim()) {
+        setError('Họ và tên không được để trống.');
+        return;
+      }
+      if (!formData.phoneNumber.trim()) {
+        setError('Số điện thoại không được để trống.');
+        return;
+      }
+      if (!/^\d{9,11}$/.test(formData.phoneNumber.trim())) {
+        setError('Số điện thoại phải gồm 9–11 chữ số.');
+        return;
+      }
+      if (!formData.className.trim()) {
+        setError('Lớp sinh hoạt không được để trống.');
+        return;
+      }
+      setError('');
       setShowConfirm(true);
     }
   };

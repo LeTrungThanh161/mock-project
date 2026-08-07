@@ -16,14 +16,18 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
 
     List<Room> findByBuilding_BuildingId(Integer buildingId);
 
+    List<Room> findByBuilding_BuildingIdAndFloorNumber(Integer buildingId, Byte floorNumber);
+
+    List<Room> findByRoomType_RoomTypeId(Integer roomTypeId);
+
     long countByBuilding_BuildingId(Integer buildingId);
 
     Optional<Room> findByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
 
     boolean existsByBuilding_BuildingIdAndRoomNumber(Integer buildingId, String roomNumber);
 
-    @Query("SELECT DISTINCT r.floorNumber FROM Room r WHERE r.building.buildingId = :buildingId ORDER BY r.floorNumber")
-    List<Integer> findDistinctFloorNumbersByBuildingId(@Param("buildingId") Integer buildingId);
+    @Query("SELECT DISTINCT r.floorNumber FROM Room r WHERE r.building.buildingId = :buildingId AND r.floorNumber IS NOT NULL ORDER BY r.floorNumber")
+    List<Byte> findDistinctFloorNumbersByBuildingId(@Param("buildingId") Integer buildingId);
 
     @Query("SELECT r FROM Room r " +
             "JOIN FETCH r.building b " +

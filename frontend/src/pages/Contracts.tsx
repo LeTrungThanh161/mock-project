@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { getMyContracts, renewMyContract } from '../services/api';
+import React, { useEffect, useState } from 'react';
+import { getMyContracts, renewMyContract, checkoutContract } from '../services/api';
 import './Contracts.css';
 
 interface Contract {
@@ -38,8 +38,11 @@ export function Contracts() {
             try {
                 const data = await getMyContracts();
                 if (data && data.length > 0) {
-                    const activeContract = data.find((c: Contract) => c.status === 'ACTIVE') || data[0];
-                    setContract(activeContract);
+                    // Luôn hiện hợp đồng mới nhất (có contractId lớn nhất)
+                    const latestContract = data.reduce((latest: Contract, current: Contract) =>
+                        current.contractId > latest.contractId ? current : latest
+                    );
+                    setContract(latestContract);
                 } else {
                     setContract(null);
                 }
@@ -55,6 +58,17 @@ export function Contracts() {
 
     const handleRenew = async () => {
         if (!contract) return;
+
+        // Kiểm tra: chỉ cho phép gia hạn khi ngày hiện tại cách hạn cuối <= 1 tháng
+        const today = new Date();
+        const endDate = new Date(contract.endDate);
+        const oneMonthBeforeEnd = new Date(endDate);
+        oneMonthBeforeEnd.setMonth(oneMonthBeforeEnd.getMonth() - 1);
+        if (today < oneMonthBeforeEnd) {
+            alert('Hiện tại chưa đến thời điểm gia hạn hợp đồng');
+            return;
+        }
+
         if (window.confirm('Bạn có chắc chắn muốn gia hạn hợp đồng thêm 6 tháng không?')) {
             try {
                 setLoading(true);
@@ -67,6 +81,26 @@ export function Contracts() {
             } finally {
                 setLoading(false);
             }
+        }
+    };
+
+    const handleCheckout = async () => {
+        if (!contract) return;
+        const confirmed = window.confirm(
+            `Bạn có chắc chắn muốn YÊU CẦU TRẢ PHÒNG?\n\n` +
+            `Phòng: ${contract.roomNumber} - ${contract.buildingName}\n` +
+            `Hành động này sẽ chấm dứt hợp đồng hiện tại và không thể hoàn tác.`
+        );
+        if (!confirmed) return;
+        try {
+            setLoading(true);
+            const updatedContract = await checkoutContract(contract.contractId);
+            setContract(updatedContract);
+            alert('Trả phòng thành công! Hợp đồng đã được chấm dứt.');
+        } catch (err: any) {
+            alert('Lỗi: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -125,7 +159,7 @@ export function Contracts() {
                         <p>Ngày ký: <strong>{formatDate(contract.startDate)}</strong></p>
                     </div>
                     <div className="info-group">
-                        <p>Phòng ở: <strong>Phòng {contract.roomNumber} - Tòa {contract.buildingName}</strong></p>
+                        <p>Phòng ở: <strong>Phòng {contract.roomNumber} - {contract.buildingName}</strong></p>
                         <p>Loại: <strong>{contract.roomTypeName || 'N/A'}</strong></p>
                     </div>
                 </div>
@@ -145,8 +179,20 @@ export function Contracts() {
             <p className="note">(*) Lưu ý: Để gia hạn hợp đồng cho kỳ học tiếp theo, vui lòng gửi yêu cầu trước ngày hết hạn 10 ngày.</p>
 
             <div className="actions">
-                <button className="btn-outline-dark">YÊU CẦU TRẢ PHÒNG</button>
-                <button className="btn-primary-blue" onClick={handleRenew}>ĐĂNG KÝ GIA HẠN HỢP ĐỒNG</button>
+                <button
+                    className="btn-outline-dark"
+                    onClick={handleCheckout}
+                    disabled={contract.status !== 'Active'}
+                >
+                    YÊU CẦU TRẢ PHÒNG
+                </button>
+                <button
+                    className="btn-primary-blue"
+                    onClick={handleRenew}
+                    disabled={contract.status !== 'Active'}
+                >
+                    ĐĂNG KÝ GIA HẠN HỢP ĐỒNG
+                </button>
             </div>
         </div>
     );
