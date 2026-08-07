@@ -178,7 +178,7 @@ export function Contracts() {
                     </div>
                     <div className="info-group">
                         <p>Tiền thuê phòng: <strong>{formatCurrency(contract.roomPrice)}</strong></p>
-                        <p>Tiền đặt cọc: <strong>{formatCurrency(contract.deposit)} (Đã đóng)</strong></p>
+                        <p>Tiền đặt cọc: <strong>{formatCurrency(contract.deposit)} ({contract.status.toUpperCase() === 'INACTIVE' ? 'Chưa đóng' : 'Đã đóng'})</strong></p>
                     </div>
                 </div>
             </div>
