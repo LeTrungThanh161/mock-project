@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { getStudentProfile, updateStudentProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './StudentProfile.css';
 
 const StudentProfile = () => {
+  const { user, login } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
@@ -76,6 +78,10 @@ const StudentProfile = () => {
       setSuccessMsg('Cập nhật thông tin thành công!');
       setProfile(updatedProfile);
       setIsEditing(false);
+
+      if (user) {
+        login({ ...user, fullName: updatedProfile.fullName || formData.fullName });
+      }
     } catch (err) {
       setError('Có lỗi xảy ra khi cập nhật thông tin.');
     }
