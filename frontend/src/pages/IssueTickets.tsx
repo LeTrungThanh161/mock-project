@@ -138,11 +138,7 @@ export const IssueTickets = () => {
           <h4>{tickets.filter(t => t.status === 'InProgress').length}</h4>
           <div className="tk-progress-bar"><div className="tk-progress" style={{ width: '40%' }}></div></div>
         </div>
-        <div className="tk-stat-card">
-          <p>ƯU TIÊN CAO</p>
-          <h4 className="danger">{tickets.filter(t => t.priority === 'High').length}</h4>
-          <span className="danger">Cần giải quyết ngay</span>
-        </div>
+
         <div className="tk-stat-card">
           <p>ĐÃ HOÀN TẤT</p>
           <h4>{tickets.filter(t => t.status === 'Completed').length}</h4>
@@ -154,7 +150,7 @@ export const IssueTickets = () => {
         <div className="tk-table-actions">
           <div className="tk-title-search">
             <h3 style={{ color: 'black' }}>Danh sách yêu cầu hỗ trợ</h3>
-            <div className="tk-search">
+            <div className="global-search">
               <span>🔍</span>
               <input
                 type="text"
@@ -173,7 +169,6 @@ export const IssueTickets = () => {
               <th style={{ color: 'white' }}>PHÒNG</th>
               <th style={{ color: 'white' }}>LOẠI SỰ CỐ</th>
               <th style={{ color: 'white' }}>NỘI DUNG TÓM TẮT</th>
-              <th style={{ color: 'white' }}>MỨC ĐỘ</th>
               <th style={{ color: 'white' }}>TRẠNG THÁI</th>
               <th style={{ color: 'white', textAlign: 'center' }}>HÀNH ĐỘNG</th>
             </tr>
@@ -200,11 +195,6 @@ export const IssueTickets = () => {
                     <small>{parsed.desc.length > 30 ? parsed.desc.substring(0, 30) + '...' : parsed.desc}</small>
                   </td>
                   <td style={{ color: 'gray' }}>
-                    <span className={`tk-priority-badge ${getPriorityClass(t.priority)}`}>
-                      {getPriorityText(t.priority)}
-                    </span>
-                  </td>
-                  <td style={{ color: 'gray' }}>
                     <span className={`tk-status-dot ${getStatusClass(t.status)}`}></span>
                     {getStatusText(t.status)}
                   </td>
@@ -223,7 +213,7 @@ export const IssueTickets = () => {
         <div className="tk-pagination">
           <span>Hiển thị {currentTickets.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredTickets.length)} trên {filteredTickets.length} yêu cầu</span>
           {totalPages > 0 && (
-            <div className="tk-page-controls">
+            <div className="global-pagination">
               <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
               {getPageNumbers().map(pageNum => (
                 <button key={pageNum} className={pageNum === currentPage ? 'active' : ''} onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>

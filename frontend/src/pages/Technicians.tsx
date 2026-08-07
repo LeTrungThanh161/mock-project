@@ -8,6 +8,7 @@ export const Technicians = () => {
   const { user } = useAuth();
   const [techs, setTechs] = useState<any[]>([]);
   const [buildings, setBuildings] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -21,6 +22,7 @@ export const Technicians = () => {
   const [status, setStatus] = useState('Active'); // Active or Inactive
   const [buildingId, setBuildingId] = useState(1);
   const [editId, setEditId] = useState<number | null>(null);
+  const [isTechBusy, setIsTechBusy] = useState(false);
 
   // Search state
   const [search, setSearch] = useState('');
@@ -42,6 +44,7 @@ export const Technicians = () => {
         setBuildingId(res.data[0].buildingId);
       }
     }).catch(err => console.error("Failed to fetch buildings", err));
+    api.get('/helpdesk').then(res => setTickets(res.data)).catch(err => console.error(err));
   }, []);
 
   const resetForm = () => {
@@ -113,6 +116,8 @@ export const Technicians = () => {
     setPhoneNumber(t.phoneNumber || '');
     setStatus(t.status);
     setBuildingId(t.building?.buildingId || 1);
+    const busy = tickets.some(ticket => ticket.assignedTechnician?.technicianId === t.technicianId && ticket.status !== 'Completed');
+    setIsTechBusy(busy);
     setShowEditModal(true);
   };
 
@@ -187,7 +192,7 @@ export const Technicians = () => {
 
       <div className="tech-table-container">
         <div className="tech-table-actions">
-          <div className="tech-search">
+          <div className="global-search">
             <span>🔍</span>
             <input type="text" placeholder="Tìm kiếm tên, số điện thoại..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
@@ -241,7 +246,7 @@ export const Technicians = () => {
         <div className="tech-pagination">
           <span>Hiển thị {currentTechs.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredTechs.length)} trên {filteredTechs.length} nhân viên</span>
           {totalPages > 0 && (
-            <div className="tech-page-controls">
+            <div className="global-pagination">
               <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
               {getPageNumbers().map(pageNum => (
                 <button key={pageNum} className={pageNum === currentPage ? 'active' : ''} onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>
@@ -318,11 +323,12 @@ export const Technicians = () => {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái</label>
+                <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái {isTechBusy && <span style={{color: 'red', fontSize: '0.8rem'}}>(Đang có yêu cầu xử lý)</span>}</label>
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value)}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: '#fff' }}
+                  disabled={isTechBusy}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: isTechBusy ? '#f5f5f5' : '#fff' }}
                 >
                   <option value="Active">Sẵn Sàng (Active)</option>
                   <option value="Inactive">Bận (Busy)</option>

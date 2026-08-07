@@ -156,7 +156,7 @@ export const StudentHelpdesk = () => {
       <div className="sh-header">
         <h2>TRUNG TÂM HỖ TRỢ</h2>
         <div className="sh-header-right">
-          <div className="sh-search">
+          <div className="global-search">
             <span>🔍</span>
             <input type="text" placeholder="Tìm kiếm yêu cầu..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
@@ -182,6 +182,7 @@ export const StudentHelpdesk = () => {
                 <option>Nước (Water)</option>
                 <option>Internet (Network)</option>
                 <option>Cơ sở vật chất (Facilities)</option>
+                <option>Khác (Others)</option>
               </select>
             </div>
 
@@ -244,12 +245,12 @@ export const StudentHelpdesk = () => {
             </div>
 
             {totalPages > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '4px 8px' }}>&lt;</button>
+              <div className="global-pagination">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
                 {getPageNumbers().map(pageNum => (
-                  <button key={pageNum} style={{ padding: '4px 8px', background: pageNum === currentPage ? '#2196F3' : '#eee', color: pageNum === currentPage ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>
+                  <button key={pageNum} className={pageNum === currentPage ? 'active' : ''} onClick={() => setCurrentPage(pageNum)}>{pageNum}</button>
                 ))}
-                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: '4px 8px' }}>&gt;</button>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>&gt;</button>
               </div>
             )}
           </div>
