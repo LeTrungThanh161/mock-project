@@ -126,11 +126,23 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 "/api/auth/login",
                                                                 "/api/auth/register",
+                                                                "/api/auth/reset-password",
+                                                                "/api/auth/check-email",
                                                                 "/api/auth/debug-token")
                                                 .permitAll()
 
-                                                // ── [1.5] MANAGER CÓ THỂ XEM PRICING TIERS ─────────────────────────
+                                                // ── [1.5] MANAGER CÓ THỂ XEM PRICING TIERS & TÀI KHOẢN ─────────────────────────
                                                 .requestMatchers(HttpMethod.GET, "/api/admin/pricing-tiers")
+                                                .hasAnyRole("ADMIN", "MANAGER")
+
+                                                // Manager xem danh sách sinh viên và ban quản lý (chỉ đọc)
+                                                .requestMatchers(HttpMethod.GET, "/api/admin/students", "/api/admin/staff")
+                                                .hasAnyRole("ADMIN", "MANAGER")
+
+                                                // Manager thao tác trên tài khoản sinh viên (reset pass, khóa/mở khóa)
+                                                .requestMatchers(HttpMethod.POST,
+                                                                "/api/admin/students/*/reset-password",
+                                                                "/api/admin/students/*/toggle-status")
                                                 .hasAnyRole("ADMIN", "MANAGER")
 
                                                 // ── [2] ADMIN ONLY
@@ -171,9 +183,12 @@ public class SecurityConfig {
 
                                                 .requestMatchers(
                                                                 "/api/contracts", // GET danh sách
-                                                                "/api/contracts/*/renew", // gia hạn
-                                                                "/api/contracts/*/checkout" // trả phòng
+                                                                "/api/contracts/*/renew" // gia hạn
                                                 ).hasAnyRole("ADMIN", "MANAGER")
+
+                                                // Trả phòng: ADMIN, MANAGER và STUDENT (tự trả phòng)
+                                                .requestMatchers("/api/contracts/*/checkout")
+                                                .hasAnyRole("ADMIN", "MANAGER", "STUDENT")
 
                                                 .requestMatchers(
                                                                 "/api/temporary-absences",

@@ -33,7 +33,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Đăng nhập: xác thực email/password, tạo JWT, trả về thông tin role + buildingId.
+     * Đăng nhập: xác thực email/password, tạo JWT, trả về thông tin role +
+     * buildingId.
      */
     public LoginResponse login(LoginRequest request) {
         Account account = accountRepository.findByEmail(request.getEmail())
@@ -43,8 +44,11 @@ public class AuthService {
             throw new BadCredentialsException("Sai mật khẩu");
         }
 
+        if (account.getStatus() == AccountStatus.Locked) {
+            throw new IllegalStateException("Tài khoản của bạn đã bị khóa");
+        }
         if (account.getStatus() != AccountStatus.Active) {
-            throw new IllegalStateException("Tài khoản đang bị khoá hoặc vô hiệu hoá");
+            throw new IllegalStateException("Tài khoản đang bị vô hiệu hoá");
         }
 
         String roleName = account.getRole().getRoleName(); // Student / Manager / Admin
@@ -137,7 +141,8 @@ public class AuthService {
             }
         } else {
             Student student = studentRepository.findByAccountId(accountId).orElse(null);
-            if (student != null) fullName = student.getFullName();
+            if (student != null)
+                fullName = student.getFullName();
         }
 
         return MeResponse.builder()
@@ -147,5 +152,17 @@ public class AuthService {
                 .buildingId(buildingId)
                 .fullName(fullName)
                 .build();
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại: " + request.getEmail()));
+        account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+    }
+
+    public boolean checkEmailExists(String email) {
+        return accountRepository.existsByEmail(email);
     }
 }

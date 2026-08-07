@@ -39,7 +39,7 @@ const MENU_ITEMS: Record<UserRole, { to: string; icon: React.ReactNode; label: s
     // { to: '/applications', icon: <ClipboardList size={18} />, label: 'Đơn đăng ký' },
     // { to: '/contracts', icon: <FileSignature size={18} />, label: 'Hợp đồng' },
     // { to: '/absences', icon: <Clock size={18} />, label: 'Tạm vắng' },
-    // { to: '/pricing-tiers', icon: <Settings size={18} />, label: 'Cấu hình giá' },
+    { to: '/pricing-tiers', icon: <Settings size={18} />, label: 'Cấu hình giá' },
     { to: '/meter-readings', icon: <Zap size={18} />, label: 'Điện & Nước' },
     { to: '/invoices', icon: <Receipt size={18} />, label: 'Hóa đơn' },
     { to: '/helpdesk', icon: <Wrench size={18} />, label: 'Hỗ trợ' },

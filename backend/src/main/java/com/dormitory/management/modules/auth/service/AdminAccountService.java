@@ -124,6 +124,29 @@ public class AdminAccountService {
                 .map(this::mapStudentToResponse)
                 .collect(Collectors.toList());
 
+        // Nếu là Manager, chỉ được xem sinh viên thuộc tòa nhà mình quản lý
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String email = auth.getName();
+            if (auth.getPrincipal() instanceof com.dormitory.management.modules.auth.entity.Account) {
+                email = ((com.dormitory.management.modules.auth.entity.Account) auth.getPrincipal()).getEmail();
+            }
+            Staff staff = staffRepository.findByAccount_Email(email).orElse(null);
+            if (staff != null && staff.getBuilding() != null) {
+                String managerBuilding = staff.getBuilding().getName();
+                allResponses = allResponses.stream()
+                        .filter(s -> s.getBuildingName() != null
+                                && s.getBuildingName().equalsIgnoreCase(managerBuilding))
+                        .collect(Collectors.toList());
+            } else if (staff != null) {
+                // Nếu là Staff/Manager nhưng chưa được gán tòa nhà, không trả về sinh viên nào
+                allResponses = all.stream()
+                        .map(this::mapStudentToResponse)
+                        .collect(Collectors.toList());
+            }
+        }
+
         // Lọc theo từ khóa tìm kiếm
         if (search != null && !search.isBlank()) {
             String kw = search.toLowerCase().trim();

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getAvailableRooms, registerRoom } from '../services/api';
+import { getAvailableRooms, registerRoom, getMyContracts } from '../services/api';
 import './RoomRegistration.css';
 
 interface RoomDTO {
@@ -23,9 +23,11 @@ export const RoomRegistration = () => {
   const [selectedRoom, setSelectedRoom] = useState<RoomDTO | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [hasExistingContract, setHasExistingContract] = useState(false);
 
   useEffect(() => {
     fetchRooms();
+    checkExistingContract();
   }, []);
 
   const fetchRooms = async () => {
@@ -38,6 +40,18 @@ export const RoomRegistration = () => {
       setError('Không thể tải danh sách phòng. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkExistingContract = async () => {
+    try {
+      const data = await getMyContracts();
+      if (data && data.length > 0) {
+        const active = data.some((c: any) => c.status !== 'Expired' && c.status !== 'Terminated');
+        setHasExistingContract(active);
+      }
+    } catch (err) {
+      console.error('Error checking student contracts:', err);
     }
   };
 
@@ -60,6 +74,10 @@ export const RoomRegistration = () => {
   }, [rooms, selectedBuilding, selectedRoomType]);
 
   const handleSelectRoom = (room: RoomDTO) => {
+    if (hasExistingContract) {
+      alert('Bạn đã có hợp đồng');
+      return;
+    }
     setSelectedRoom(room);
     setShowModal(true);
   };

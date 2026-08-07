@@ -54,6 +54,26 @@ public class AuthController {
     }
 
     /**
+     * POST /api/auth/reset-password
+     * Nhận email và mật khẩu mới để thiết lập lại mật khẩu.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok("Đặt lại mật khẩu thành công.");
+    }
+
+    /**
+     * POST /api/auth/check-email
+     * Kiểm tra sự tồn tại của email.
+     */
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(@RequestBody ResetPasswordRequest request) {
+        boolean exists = authService.checkEmailExists(request.getEmail());
+        return ResponseEntity.ok(exists);
+    }
+
+    /**
      * GET /api/auth/me
      * Yêu cầu Authorization: Bearer <token>
      * Trả về thông tin tài khoản hiện tại (role, buildingId, fullName...).

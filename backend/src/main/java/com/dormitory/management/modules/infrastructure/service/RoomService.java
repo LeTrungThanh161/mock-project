@@ -68,8 +68,8 @@ public class RoomService {
                 .maxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity()
                         : (roomType != null ? roomType.getDefaultCapacity() : 0))
                 .currentOccupancy((byte) 0)
-                .price(request.getPrice() != null ? request.getPrice()
-                        : (roomType != null ? roomType.getDefaultPrice() : null))
+                // Giá phòng luôn lấy theo giá mặc định của loại phòng
+                .price(roomType != null ? roomType.getDefaultPrice() : request.getPrice())
                 .status(request.getStatus() != null ? request.getStatus() : RoomStatus.Available)
                 .build();
 
@@ -107,7 +107,8 @@ public class RoomService {
         room.setRoomType(roomType);
         room.setRoomNumber(request.getRoomNumber());
         room.setMaxCapacity(request.getMaxCapacity());
-        room.setPrice(request.getPrice());
+        // Giá phòng luôn lấy theo giá mặc định của loại phòng
+        room.setPrice(roomType != null ? roomType.getDefaultPrice() : request.getPrice());
 
         if (request.getStatus() != null) {
             room.setStatus(request.getStatus());

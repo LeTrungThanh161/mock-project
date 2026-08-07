@@ -22,7 +22,7 @@ public class AdminController {
 
     // GET /api/admin/staff — lấy danh sách toàn bộ Staff
     @GetMapping("/staff")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<StaffResponse>> getAllStaff() {
         return ResponseEntity.ok(adminAccountService.getAllStaff());
     }
@@ -49,7 +49,7 @@ public class AdminController {
     // GET /api/admin/students?page=0&size=10&search=... — danh sách sinh viên có
     // phân trang
     @GetMapping("/students")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Page<StudentAccountResponse>> getAllStudents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -65,7 +65,7 @@ public class AdminController {
     // POST /api/admin/students/{accountId}/reset-password — reset mật khẩu về
     // "123456"
     @PostMapping("/students/{accountId}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<String> resetStudentPassword(@PathVariable Integer accountId) {
         adminAccountService.resetStudentPassword(accountId);
         return ResponseEntity.ok("Đặt lại mật khẩu thành công. Mật khẩu mới: 123456");
@@ -74,7 +74,7 @@ public class AdminController {
     // POST /api/admin/students/{accountId}/toggle-status — khóa/mở khóa tài khoản
     // Student
     @PostMapping("/students/{accountId}/toggle-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<StudentAccountResponse> toggleStudentStatus(@PathVariable Integer accountId) {
         return ResponseEntity.ok(adminAccountService.toggleStudentStatus(accountId));
     }

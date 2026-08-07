@@ -4,6 +4,7 @@ import {
   getAllRooms, createRoom, updateRoom, getFloorsByBuilding,
   getAllRoomTypes, createRoomType, updateRoomType
 } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Infrastructure.css';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -41,7 +42,11 @@ interface Room {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function Infrastructure() {
-  const [activeTab, setActiveTab] = useState<'buildings' | 'rooms' | 'roomTypes'>('buildings');
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const [activeTab, setActiveTab] = useState<'buildings' | 'rooms' | 'roomTypes'>(
+    isAdmin ? 'buildings' : 'rooms'
+  );
   const [loading, setLoading] = useState(false);
 
   // ── Data states ──
@@ -161,6 +166,13 @@ export function Infrastructure() {
     }
   }, [roomFilterBuildingId, fetchFloors, activeTab]);
 
+  // Automatically select the building for MANAGER role
+  useEffect(() => {
+    if (!isAdmin && buildings.length === 1 && roomFilterBuildingId === '') {
+      setRoomFilterBuildingId(buildings[0].buildingId);
+    }
+  }, [buildings, isAdmin, roomFilterBuildingId]);
+
   // ─── Format Utils ────────────────────────────────────────────────────────
 
   const formatPrice = (price: number) => {
@@ -194,8 +206,16 @@ export function Infrastructure() {
   };
 
   const handleSaveBuilding = async () => {
-    if (!buildingForm.name || !buildingForm.totalFloors) {
-      alert('Vui lòng nhập Tên tòa nhà và Số tầng');
+    if (!buildingForm.name.trim()) {
+      alert('Vui lòng nhập Tên tòa nhà.');
+      return;
+    }
+    if (!buildingForm.totalFloors || Number(buildingForm.totalFloors) <= 0) {
+      alert('Số tầng phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(buildingForm.totalFloors))) {
+      alert('Số tầng phải là số nguyên.');
       return;
     }
     const payload = {
@@ -245,8 +265,20 @@ export function Infrastructure() {
   };
 
   const handleSaveRoomType = async () => {
-    if (!roomTypeForm.typeName || !roomTypeForm.defaultCapacity || !roomTypeForm.defaultPrice) {
-      alert('Vui lòng nhập đầy đủ thông tin');
+    if (!roomTypeForm.typeName.trim()) {
+      alert('Vui lòng nhập Tên loại phòng.');
+      return;
+    }
+    if (!roomTypeForm.defaultCapacity || Number(roomTypeForm.defaultCapacity) <= 0) {
+      alert('Sức chứa phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(roomTypeForm.defaultCapacity))) {
+      alert('Sức chứa phải là số nguyên.');
+      return;
+    }
+    if (roomTypeForm.defaultPrice === '' || Number(roomTypeForm.defaultPrice) < 0) {
+      alert('Giá thuê phải là số ≥ 0.');
       return;
     }
     const payload = {
@@ -316,8 +348,24 @@ export function Infrastructure() {
   };
 
   const handleSaveRoom = async () => {
-    if (!roomForm.buildingId || !roomForm.roomNumber || !roomForm.maxCapacity) {
-      alert('Vui lòng nhập đầy đủ Số phòng và Sức chứa');
+    if (!roomForm.buildingId) {
+      alert('Vui lòng chọn Tòa nhà.');
+      return;
+    }
+    if (!Number.isInteger(Number(roomForm.roomNumber.trim()))) {
+      alert('Vui lòng nhập Số phòng là số nguyên.');
+      return;
+    }
+    if (!roomForm.maxCapacity || Number(roomForm.maxCapacity) <= 0) {
+      alert('Sức chứa tối đa phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(roomForm.maxCapacity))) {
+      alert('Sức chứa tối đa phải là số nguyên.');
+      return;
+    }
+    if (roomForm.price !== '' && Number(roomForm.price) < 0) {
+      alert('Giá phòng phải là số ≥ 0.');
       return;
     }
     const payload = {
@@ -386,14 +434,16 @@ export function Infrastructure() {
     <div className="infra-container">
       <h2>QUẢN LÝ CƠ SỞ HẠ TẦNG</h2>
       <div className="infra-subtitle">
-        Thiết lập cấu hình vật lý KTX: Quản lý Tòa nhà, Sơ đồ Phòng và Danh mục Loại phòng.
+        Thiết lập cấu hình vật lý KTX
       </div>
 
       <div className="infra-tabs-container">
         <div className="infra-tabs">
-          <button className={`infra-tab ${activeTab === 'buildings' ? 'active' : ''}`} onClick={() => setActiveTab('buildings')}>
-            DANH SÁCH TÒA NHÀ
-          </button>
+          {isAdmin && (
+            <button className={`infra-tab ${activeTab === 'buildings' ? 'active' : ''}`} onClick={() => setActiveTab('buildings')}>
+              DANH SÁCH TÒA NHÀ
+            </button>
+          )}
           <button className={`infra-tab ${activeTab === 'rooms' ? 'active' : ''}`} onClick={() => setActiveTab('rooms')}>
             SƠ ĐỒ & QUẢN LÝ PHÒNG
           </button>
@@ -404,7 +454,7 @@ export function Infrastructure() {
       </div>
 
       {/* ── Tab: Buildings ────────────────────────────────────────────────── */}
-      {activeTab === 'buildings' && (
+      {isAdmin && activeTab === 'buildings' && (
         <>
           <div className="section-header">DANH SÁCH TÒA NHÀ TRONG HỆ THỐNG</div>
           <div className="infra-filters">
@@ -460,18 +510,20 @@ export function Infrastructure() {
         <>
           <div className="section-header">SƠ ĐỒ & QUẢN LÝ PHÒNG HẠ TẦNG</div>
           <div className="infra-filters">
-            <div className="infra-filter-group">
-              <label>Chọn Tòa nhà:</label>
-              <select value={roomFilterBuildingId} onChange={e => {
-                setRoomFilterBuildingId(e.target.value ? Number(e.target.value) : '');
-                setRoomFilterFloor('');
-              }}>
-                <option value="">Tất cả</option>
-                {buildings.map(b => (
-                  <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
-                ))}
-              </select>
-            </div>
+            {isAdmin && (
+              <div className="infra-filter-group">
+                <label>Chọn Tòa nhà:</label>
+                <select value={roomFilterBuildingId} onChange={e => {
+                  setRoomFilterBuildingId(e.target.value ? Number(e.target.value) : '');
+                  setRoomFilterFloor('');
+                }}>
+                  <option value="">Tất cả</option>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="infra-filter-group">
               <label>Tình trạng:</label>
@@ -482,7 +534,7 @@ export function Infrastructure() {
               </select>
             </div>
             <div className="infra-spacer" />
-            <button className="btn-add" onClick={() => handleOpenRoomModal()}>+ TẠO PHÒNG MỚI</button>
+            {isAdmin && <button className="btn-add" onClick={() => handleOpenRoomModal()}>+ TẠO PHÒNG MỚI</button>}
           </div>
 
           <table className="infra-table">
@@ -523,7 +575,7 @@ export function Infrastructure() {
                     </td>
                     <td>
                       <div className="infra-action-buttons">
-                        <button className="btn-edit" onClick={() => handleOpenRoomModal(r)}>✏️ Sửa</button>
+                        {isAdmin && <button className="btn-edit" onClick={() => handleOpenRoomModal(r)}>✏️ Sửa</button>}
                         {r.status === 'UnderMaintenance' ? (
                           <button className="btn-activate" onClick={() => handleToggleMaintenance(r)}>🟢 Mở hoạt động</button>
                         ) : (
@@ -546,7 +598,7 @@ export function Infrastructure() {
           <div className="section-header">DANH MỤC LOẠI PHÒNG & ĐƠN GIÁ CHUẨN</div>
           <div className="infra-filters">
             <div className="infra-spacer" />
-            <button className="btn-add" onClick={() => handleOpenRoomTypeModal()}>+ THÊM LOẠI PHÒNG MỚI</button>
+            {isAdmin && <button className="btn-add" onClick={() => handleOpenRoomTypeModal()}>+ THÊM LOẠI PHÒNG MỚI</button>}
           </div>
 
           <table className="infra-table">
@@ -556,7 +608,7 @@ export function Infrastructure() {
                 <th>Tên loại phòng</th>
                 <th>Sức chứa mặc định</th>
                 <th>Giá thuê / Giường / Tháng</th>
-                <th>Thao tác</th>
+                {isAdmin && <th>Thao tác</th>}
               </tr>
             </thead>
             <tbody>
@@ -570,9 +622,11 @@ export function Infrastructure() {
                   <td>{rt.typeName}</td>
                   <td>{rt.defaultCapacity} giường</td>
                   <td className="price-cell">{formatPrice(rt.defaultPrice)}</td>
-                  <td>
-                    <button className="btn-edit" onClick={() => handleOpenRoomTypeModal(rt)}>✏️ Sửa</button>
-                  </td>
+                  {isAdmin && (
+                    <td>
+                      <button className="btn-edit" onClick={() => handleOpenRoomTypeModal(rt)}>✏️ Sửa</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

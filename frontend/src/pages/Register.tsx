@@ -42,12 +42,60 @@ const Register = () => {
     setSuccess('');
 
     // Validate
+    if (!form.fullName.trim()) {
+      setError('Vui lòng nhập Họ và tên.');
+      return;
+    }
+
+    // MSSV
+    if (!form.studentCode.trim()) {
+      setError('Vui lòng nhập Mã số sinh viên.');
+      return;
+    }
+    if (!/^[A-Za-z0-9]{6,12}$/.test(form.studentCode.trim())) {
+      setError('MSSV phải gồm 6–12 ký tự (chữ hoặc số).');
+      return;
+    }
+
+    // Số điện thoại
+    if (!form.phoneNumber.trim()) {
+      setError('Vui lòng nhập Số điện thoại.');
+      return;
+    }
+    if (!/^\d{9,11}$/.test(form.phoneNumber.trim())) {
+      setError('Số điện thoại phải gồm 9–11 chữ số.');
+      return;
+    }
+
+    // Email
+    if (!form.email.trim()) {
+      setError('Vui lòng nhập Email.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError('Email không đúng định dạng.');
+      return;
+    }
+
+    // Mật khẩu
+    if (!form.password) {
+      setError('Vui lòng nhập Mật khẩu.');
+      return;
+    }
+    if (form.password.length < 8) {
+      setError('Mật khẩu phải có ít nhất 8 ký tự.');
+      return;
+    }
+
+    // Xác nhận mật khẩu
     if (form.password !== form.confirmPassword) {
       setError('Mật khẩu xác nhận không khớp.');
       return;
     }
-    if (form.password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự.');
+
+    // Lớp
+    if (!form.className.trim()) {
+      setError('Vui lòng nhập Lớp.');
       return;
     }
 
@@ -85,7 +133,7 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="register-form">
-          {error   && <div className="register-error">{error}</div>}
+          {error && <div className="register-error">{error}</div>}
           {success && <div className="register-success">✅ {success}</div>}
 
           <div className="register-grid">

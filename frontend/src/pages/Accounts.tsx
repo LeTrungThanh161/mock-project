@@ -3,6 +3,7 @@ import {
   getStaffList, createManager, updateStaff,
   getStudentList, resetStudentPassword, toggleStudentStatus, getBuildings
 } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Accounts.css';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -46,7 +47,9 @@ interface BuildingItem {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function Accounts() {
-  const [activeTab, setActiveTab] = useState('manager');
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const [activeTab, setActiveTab] = useState(isAdmin ? 'manager' : 'student');
 
   // ── Staff state ──
   const [staffList, setStaffList] = useState<StaffItem[]>([]);
@@ -140,8 +143,38 @@ export function Accounts() {
   };
 
   const handleCreateManager = async () => {
-    if (!createForm.fullName || !createForm.email || !createForm.password) {
-      alert('Vui lòng điền đầy đủ Họ tên, Email và Mật khẩu.');
+    if (!createForm.fullName.trim()) {
+      alert('Vui lòng nhập Họ và tên.');
+      return;
+    }
+    if (!createForm.email.trim()) {
+      alert('Vui lòng nhập Email.');
+      return;
+    }
+    // Email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(createForm.email.trim())) {
+      alert('Email không đúng định dạng.');
+      return;
+    }
+    if (!createForm.phoneNumber.trim()) {
+      alert('Vui lòng nhập Số điện thoại.');
+      return;
+    }
+    // SĐT: 9–11 chữ số
+    if (!/^\d{9,11}$/.test(createForm.phoneNumber.trim())) {
+      alert('Số điện thoại phải gồm 9–11 chữ số.');
+      return;
+    }
+    if (!createForm.password) {
+      alert('Vui lòng nhập Mật khẩu khởi tạo.');
+      return;
+    }
+    if (createForm.password.length < 8) {
+      alert('Mật khẩu phải có ít nhất 8 ký tự.');
+      return;
+    }
+    if (!createForm.buildingId) {
+      alert('Vui lòng chọn tòa nhà phân công.');
       return;
     }
     setCreateLoading(true);
@@ -166,6 +199,24 @@ export function Accounts() {
 
   const handleUpdateStaff = async () => {
     if (!selectedStaff) return;
+
+    if (!configForm.fullName.trim()) {
+      alert('Vui lòng nhập Họ và tên.');
+      return;
+    }
+    if (!configForm.phoneNumber.trim()) {
+      alert('Vui lòng nhập Số điện thoại.');
+      return;
+    }
+    if (!/^\d{9,11}$/.test(configForm.phoneNumber.trim())) {
+      alert('Số điện thoại phải gồm 9–11 chữ số.');
+      return;
+    }
+    // Manager bắt buộc chọn tòa
+    if (selectedStaff.roleName?.toUpperCase() !== 'ADMIN' && !configForm.buildingId) {
+      alert('Vui lòng chọn tòa nhà phân công.');
+      return;
+    }
     setConfigLoading(true);
     try {
       await updateStaff(selectedStaff.staffId, {
@@ -192,10 +243,10 @@ export function Accounts() {
   };
 
   const handleResetPassword = async (accountId: number, name: string) => {
-    if (!window.confirm(`Xác nhận reset mật khẩu của ${name} về "123456"?`)) return;
+    if (!window.confirm(`Xác nhận reset mật khẩu của ${name} về "12345678"?`)) return;
     try {
       await resetStudentPassword(accountId);
-      alert(`Đã reset mật khẩu của ${name} thành công. Mật khẩu mới: 123456`);
+      alert(`Đã reset mật khẩu của ${name} thành công. Mật khẩu mới: 12345678`);
     } catch (err: any) {
       alert('Lỗi: ' + (err.response?.data?.message || err.message));
     }
@@ -236,19 +287,21 @@ export function Accounts() {
     <div className="accounts-container">
       <h2>QUẢN LÝ TÀI KHOẢN</h2>
 
-      <div className="tabs-container">
-        <div className="tabs">
-          <button className={`tab ${activeTab === 'manager' ? 'active' : ''}`} onClick={() => setActiveTab('manager')}>
-            Ban quản lý
-          </button>
-          <button className={`tab ${activeTab === 'student' ? 'active' : ''}`} onClick={() => setActiveTab('student')}>
-            Sinh viên
-          </button>
+      {isAdmin && (
+        <div className="tabs-container">
+          <div className="tabs">
+            <button className={`tab ${activeTab === 'manager' ? 'active' : ''}`} onClick={() => setActiveTab('manager')}>
+              Ban quản lý
+            </button>
+            <button className={`tab ${activeTab === 'student' ? 'active' : ''}`} onClick={() => setActiveTab('student')}>
+              Sinh viên
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Tab Ban quản lý ─────────────────────────────────────────────────── */}
-      {activeTab === 'manager' && (
+      {isAdmin && activeTab === 'manager' && (
         <div className="tab-content">
           <div className="filters">
             <input
@@ -256,9 +309,11 @@ export function Accounts() {
               placeholder="Tìm theo email, tên..."
               className="search-input"
             />
-            <button className="btn-primary-blue ml-auto" onClick={() => { setCreateForm({ fullName: '', email: '', phoneNumber: '', password: '', buildingId: '' }); setShowCreateModal(true); }}>
-              + TẠO TÀI KHOẢN MANAGER
-            </button>
+            {isAdmin && (
+              <button className="btn-primary-blue ml-auto" onClick={() => { setCreateForm({ fullName: '', email: '', phoneNumber: '', password: '', buildingId: '' }); setShowCreateModal(true); }}>
+                + TẠO TÀI KHOẢN MANAGER
+              </button>
+            )}
           </div>
 
           {staffError && <p style={{ color: 'red', marginBottom: 12 }}>{staffError}</p>}
@@ -267,15 +322,16 @@ export function Accounts() {
             <thead>
               <tr>
                 <th>ID</th><th>Email</th><th>Họ và tên</th><th>Vai trò</th><th>Tòa phụ trách</th><th>Trạng thái</th>
+                {isAdmin && <th>Thao tác</th>}
               </tr>
             </thead>
             <tbody>
               {staffLoading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 24 }}>Đang tải...</td></tr>
+                <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 24 }}>Đang tải...</td></tr>
               ) : staffList.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 24 }}>Không có dữ liệu</td></tr>
+                <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 24 }}>Không có dữ liệu</td></tr>
               ) : staffList.map(staff => (
-                <tr key={staff.staffId} onClick={() => handleOpenConfig(staff)} style={{ cursor: 'pointer' }}>
+                <tr key={staff.staffId} onClick={isAdmin ? () => handleOpenConfig(staff) : undefined} style={isAdmin ? { cursor: 'pointer' } : {}}>
                   <td>{String(staff.staffId).padStart(3, '0')}</td>
                   <td>{staff.email}</td>
                   <td>{staff.fullName}</td>
@@ -284,6 +340,11 @@ export function Accounts() {
                   <td className={staff.status === 'Active' ? 'text-success' : 'text-danger'}>
                     [{staff.status === 'Active' ? 'Active' : 'Khóa'}]
                   </td>
+                  {isAdmin && (
+                    <td>
+                      <button className="btn-small" onClick={(e) => { e.stopPropagation(); handleOpenConfig(staff); }}>✏️ Sửa</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -317,17 +378,19 @@ export function Accounts() {
               onChange={e => { setFilterClassName(e.target.value); setCurrentPage(0); }}
             />
 
-            <select
-              className="search-input"
-              style={{ width: '200px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
-              value={filterBuildingName}
-              onChange={e => { setFilterBuildingName(e.target.value); setCurrentPage(0); }}
-            >
-              <option value="">Tất cả các tòa</option>
-              {buildings.map(b => (
-                <option key={b.buildingId} value={b.name}>{b.name}</option>
-              ))}
-            </select>
+            {isAdmin && (
+              <select
+                className="search-input"
+                style={{ width: '200px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
+                value={filterBuildingName}
+                onChange={e => { setFilterBuildingName(e.target.value); setCurrentPage(0); }}
+              >
+                <option value="">Tất cả các tòa</option>
+                {buildings.map(b => (
+                  <option key={b.buildingId} value={b.name}>{b.name}</option>
+                ))}
+              </select>
+            )}
 
             <select
               className="search-input"
@@ -341,31 +404,33 @@ export function Accounts() {
               <option value="Inactive">Inactive</option>
             </select>
 
-            <select
-              className="search-input"
-              style={{ width: '220px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
-              value={filterHasRoom}
-              onChange={e => { setFilterHasRoom(e.target.value); setCurrentPage(0); }}
-            >
-              <option value="">Tất cả sinh viên</option>
-              <option value="true">Đã xếp phòng</option>
-              <option value="false">Chưa xếp phòng</option>
-            </select>
-
+            {isAdmin && (
+              <select
+                className="search-input"
+                style={{ width: '220px', minWidth: '140px', cursor: 'pointer', flexShrink: 0 }}
+                value={filterHasRoom}
+                onChange={e => { setFilterHasRoom(e.target.value); setCurrentPage(0); }}
+              >
+                <option value="">Tất cả sinh viên</option>
+                <option value="true">Đã xếp phòng</option>
+                <option value="false">Chưa xếp phòng</option>
+              </select>
+            )}
             <button className="btn-primary-blue" style={{ flexShrink: 0 }} onClick={handleSearch}>Tìm kiếm</button>
           </div>
 
           <table className="light-table">
             <thead>
               <tr>
-                <th>MSSV</th><th>Họ và tên</th><th>Email sinh viên</th><th>Lớp</th><th>Tòa - Phòng</th><th>Trạng thái</th><th>Thao tác</th>
+                <th>MSSV</th><th>Họ và tên</th><th>Email sinh viên</th><th>Lớp</th><th>Tòa - Phòng</th><th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {studentLoading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}>Đang tải...</td></tr>
+                <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 24 }}>Đang tải...</td></tr>
               ) : !studentPage || studentPage.content.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24 }}>Không có dữ liệu</td></tr>
+                <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 24 }}>Không có dữ liệu</td></tr>
               ) : studentPage.content.map(sv => (
                 <tr key={sv.studentId}>
                   <td>{sv.studentCode}</td>
@@ -386,6 +451,7 @@ export function Accounts() {
                       </button>
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
@@ -436,7 +502,7 @@ export function Accounts() {
                   value={createForm.buildingId}
                   onChange={e => setCreateForm(f => ({ ...f, buildingId: e.target.value }))}
                 >
-                  <option value="">-- Để trống nếu là Admin --</option>
+                  <option value="">-- Hãy chọn tòa nhà phân công --</option>
                   {buildings.map(b => (
                     <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
                   ))}
@@ -474,31 +540,37 @@ export function Accounts() {
                 <label>Số điện thoại</label>
                 <input type="text" value={configForm.phoneNumber} onChange={e => setConfigForm(f => ({ ...f, phoneNumber: e.target.value }))} />
               </div>
-              <div className="form-group-light">
-                <label>Tòa nhà phân công:</label>
-                <select
-                  value={configForm.buildingId}
-                  onChange={e => setConfigForm(f => ({ ...f, buildingId: e.target.value }))}
-                >
-                  <option value="">-- Để trống nếu là Admin --</option>
-                  {buildings.map(b => (
-                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group-light flex-radio">
-                <label>Trạng thái tài khoản:</label>
-                <div className="radio-group">
-                  <label>
-                    <input type="radio" name="cfg-status" checked={configForm.status === 'Active'} onChange={() => setConfigForm(f => ({ ...f, status: 'Active' }))} />
-                    {' '}Hoạt động (Active)
-                  </label>
-                  <label>
-                    <input type="radio" name="cfg-status" checked={configForm.status === 'Locked'} onChange={() => setConfigForm(f => ({ ...f, status: 'Locked' }))} />
-                    {' '}Tạm khóa (Locked)
-                  </label>
+
+              {selectedStaff.roleName?.toUpperCase() !== 'ADMIN' && (
+                <div className="form-group-light">
+                  <label>Tòa nhà phân công:</label>
+                  <select
+                    value={configForm.buildingId}
+                    onChange={e => setConfigForm(f => ({ ...f, buildingId: e.target.value }))}
+                  >
+                    <option value="">-- Hãy chọn tòa nhà phân công --</option>
+                    {buildings.map(b => (
+                      <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
+
+              {selectedStaff.roleName?.toUpperCase() !== 'ADMIN' && (
+                <div className="form-group-light flex-radio">
+                  <label>Trạng thái tài khoản:</label>
+                  <div className="radio-group">
+                    <label>
+                      <input type="radio" name="cfg-status" checked={configForm.status === 'Active'} onChange={() => setConfigForm(f => ({ ...f, status: 'Active' }))} />
+                      {' '}Hoạt động (Active)
+                    </label>
+                    <label>
+                      <input type="radio" name="cfg-status" checked={configForm.status === 'Locked'} onChange={() => setConfigForm(f => ({ ...f, status: 'Locked' }))} />
+                      {' '}Tạm khóa (Locked)
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="modal-footer">
               <button className="btn-outline-dark" onClick={() => setShowConfigModal(false)}>HỦY BỎ</button>

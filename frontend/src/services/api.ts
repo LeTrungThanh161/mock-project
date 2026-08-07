@@ -70,6 +70,11 @@ export const renewMyContract = async (contractId: number) => {
   return response.data;
 };
 
+export const checkoutContract = async (contractId: number) => {
+  const response = await api.post(`/contracts/${contractId}/checkout`);
+  return response.data;
+};
+
 // ─── Admin Account Management ─────────────────────────────────────────────────
 
 export const getStaffList = async () => {

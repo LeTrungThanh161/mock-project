@@ -59,9 +59,9 @@ public class ContractController {
                 .body(contractService.renewContract(id, staffAccountId, renewRequest));
     }
 
-    // Admin/Manager: Trả phòng / Chấm dứt hợp đồng
+    // Admin/Manager/Student: Trả phòng / Chấm dứt hợp đồng
     @PostMapping("/{id}/checkout")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STUDENT')")
     public ResponseEntity<ContractResponse> checkoutContract(
             @PathVariable Integer id,
             HttpServletRequest request) {
