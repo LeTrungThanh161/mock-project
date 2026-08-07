@@ -179,7 +179,7 @@ const StudentProfile = () => {
       {showConfirm && (
         <div className="confirm-modal-overlay">
           <div className="confirm-modal">
-            <h3>Xác nhận cập nhật</h3>
+            <h3 style={{ color: 'black' }}>Xác nhận cập nhật</h3>
             <p>Bạn có chắc chắn muốn lưu các thay đổi này không?</p>
             <div className="confirm-modal-actions">
               <button className="btn-modal-cancel" onClick={() => setShowConfirm(false)}>Hủy</button>
