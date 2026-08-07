@@ -210,12 +210,20 @@ export function Infrastructure() {
       alert('Vui lòng nhập Tên tòa nhà.');
       return;
     }
-    if (!buildingForm.totalFloors || Number(buildingForm.totalFloors) <= 0) {
+    if (!buildingForm.totalFloors || buildingForm.totalFloors.toString().trim() === '') {
+      alert('Vui lòng nhập Số tầng.');
+      return;
+    }
+    if (Number(buildingForm.totalFloors) <= 0) {
       alert('Số tầng phải là số nguyên lớn hơn 0.');
       return;
     }
     if (!Number.isInteger(Number(buildingForm.totalFloors))) {
       alert('Số tầng phải là số nguyên.');
+      return;
+    }
+    if (!buildingForm.genderType) {
+      alert('Vui lòng chọn Đối tượng áp dụng.');
       return;
     }
     const payload = {
@@ -269,7 +277,11 @@ export function Infrastructure() {
       alert('Vui lòng nhập Tên loại phòng.');
       return;
     }
-    if (!roomTypeForm.defaultCapacity || Number(roomTypeForm.defaultCapacity) <= 0) {
+    if (!roomTypeForm.defaultCapacity || roomTypeForm.defaultCapacity.toString().trim() === '') {
+      alert('Vui lòng nhập Sức chứa.');
+      return;
+    }
+    if (Number(roomTypeForm.defaultCapacity) <= 0) {
       alert('Sức chứa phải là số nguyên lớn hơn 0.');
       return;
     }
@@ -277,7 +289,11 @@ export function Infrastructure() {
       alert('Sức chứa phải là số nguyên.');
       return;
     }
-    if (roomTypeForm.defaultPrice === '' || Number(roomTypeForm.defaultPrice) < 0) {
+    if (roomTypeForm.defaultPrice === '' || roomTypeForm.defaultPrice.toString().trim() === '') {
+      alert('Vui lòng nhập Giá thuê mặc định.');
+      return;
+    }
+    if (Number(roomTypeForm.defaultPrice) < 0) {
       alert('Giá thuê phải là số ≥ 0.');
       return;
     }
@@ -352,11 +368,36 @@ export function Infrastructure() {
       alert('Vui lòng chọn Tòa nhà.');
       return;
     }
+    if (!editingRoom) {
+      if (!roomForm.roomNumber || roomForm.roomNumber.trim() === '') {
+        alert('Vui lòng nhập Số phòng.');
+        return;
+      }
+      const roomNumber = roomForm.roomNumber.trim();
+      if (!/^\d{3}$/.test(roomNumber)) {
+        alert('Số phòng phải gồm 3 chữ số (ví dụ: 101, 205, 312).');
+        return;
+      }
+
+      const isDuplicate = rooms.some(
+        r => r.buildingId === Number(roomForm.buildingId) &&
+          r.roomNumber === roomNumber
+      );
+      if (isDuplicate) {
+        alert('Phòng đã tồn tại trong tòa nhà này.');
+        return;
+      }
+    }
+
     if (!Number.isInteger(Number(roomForm.roomNumber.trim()))) {
       alert('Vui lòng nhập Số phòng là số nguyên.');
       return;
     }
-    if (!roomForm.maxCapacity || Number(roomForm.maxCapacity) <= 0) {
+    if (!roomForm.maxCapacity || roomForm.maxCapacity.toString().trim() === '') {
+      alert('Vui lòng nhập Sức chứa tối đa.');
+      return;
+    }
+    if (Number(roomForm.maxCapacity) <= 0) {
       alert('Sức chứa tối đa phải là số nguyên lớn hơn 0.');
       return;
     }
@@ -366,6 +407,11 @@ export function Infrastructure() {
     }
     if (roomForm.price !== '' && Number(roomForm.price) < 0) {
       alert('Giá phòng phải là số ≥ 0.');
+      return;
+    }
+    // Khi đang sửa thì status cũng bắt buộc
+    if (editingRoom && !roomForm.status) {
+      alert('Vui lòng chọn Trạng thái.');
       return;
     }
     const payload = {
@@ -708,7 +754,11 @@ export function Infrastructure() {
         <div className="infra-modal-backdrop">
           <div className="infra-modal">
             <div className="infra-modal-header">
-              <h3>{editingRoom ? 'CẬP NHẬT PHÒNG' : 'TẠO PHÒNG MỚI'}</h3>
+              <h3>
+                {editingRoom
+                  ? `CẬP NHẬT PHÒNG: ${editingRoom.roomNumber} - ${editingRoom.buildingName}`
+                  : 'TẠO PHÒNG MỚI'}
+              </h3>
               <button className="infra-close-btn" onClick={() => setShowRoomModal(false)}>✕</button>
             </div>
             <div className="infra-modal-body">
@@ -730,10 +780,17 @@ export function Infrastructure() {
                   ))}
                 </select>
               </div>
-              <div className="infra-form-group">
-                <label>Số phòng (*):</label>
-                <input type="text" value={roomForm.roomNumber} onChange={e => setRoomForm(f => ({ ...f, roomNumber: e.target.value }))} placeholder="VD: 101, B205..." />
-              </div>
+              {!editingRoom && (
+                <div className="infra-form-group">
+                  <label>Số phòng (*):</label>
+                  <input
+                    type="text"
+                    value={roomForm.roomNumber}
+                    onChange={e => setRoomForm(f => ({ ...f, roomNumber: e.target.value }))}
+                    placeholder="VD: 101, B205..."
+                  />
+                </div>
+              )}
               <div className="infra-form-group">
                 <label>Sức chứa tối đa (*):</label>
                 <input type="number" value={roomForm.maxCapacity} onChange={e => setRoomForm(f => ({ ...f, maxCapacity: e.target.value }))} />
