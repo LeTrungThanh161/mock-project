@@ -61,6 +61,13 @@ export const Technicians = () => {
       alert("Vui lòng điền đủ thông tin");
       return;
     }
+
+    const isDuplicate = techs.some(t => t.fullName.toLowerCase() === fullName.toLowerCase());
+    if (isDuplicate) {
+      alert("Tên kỹ thuật viên đã tồn tại, vui lòng chọn tên khác!");
+      return;
+    }
+
     setLoading(true);
     const payload = {
       fullName,
@@ -284,7 +291,7 @@ export const Technicians = () => {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '0.9rem' }}>Trạng thái</label>
-                <select value={status} onChange={e => setStatus(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}>
+                <select value={status} onChange={e => setStatus(e.target.value)} disabled style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', background: '#f5f5f5' }}>
                   <option value="Active">Sẵn Sàng (Active)</option>
                   <option value="Inactive">Bận (Busy)</option>
                 </select>
