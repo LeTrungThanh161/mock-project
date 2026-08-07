@@ -28,9 +28,11 @@ public class RoomService {
     private final RoomTypeRepository roomTypeRepository;
     private final StudentRepository studentRepository;
 
-    public List<RoomResponse> getAllRooms(Integer buildingId) {
+    public List<RoomResponse> getAllRooms(Integer buildingId, Byte floorNumber) {
         List<Room> rooms;
-        if (buildingId != null) {
+        if (buildingId != null && floorNumber != null) {
+            rooms = roomRepository.findByBuilding_BuildingIdAndFloorNumber(buildingId, floorNumber);
+        } else if (buildingId != null) {
             rooms = roomRepository.findByBuilding_BuildingId(buildingId);
         } else {
             rooms = roomRepository.findAll();
@@ -66,8 +68,8 @@ public class RoomService {
                 .maxCapacity(request.getMaxCapacity() != null ? request.getMaxCapacity()
                         : (roomType != null ? roomType.getDefaultCapacity() : 0))
                 .currentOccupancy((byte) 0)
-                .price(request.getPrice() != null ? request.getPrice()
-                        : (roomType != null ? roomType.getDefaultPrice() : null))
+                // Giá phòng luôn lấy theo giá mặc định của loại phòng
+                .price(roomType != null ? roomType.getDefaultPrice() : request.getPrice())
                 .status(request.getStatus() != null ? request.getStatus() : RoomStatus.Available)
                 .build();
 
@@ -105,7 +107,8 @@ public class RoomService {
         room.setRoomType(roomType);
         room.setRoomNumber(request.getRoomNumber());
         room.setMaxCapacity(request.getMaxCapacity());
-        room.setPrice(request.getPrice());
+        // Giá phòng luôn lấy theo giá mặc định của loại phòng
+        room.setPrice(roomType != null ? roomType.getDefaultPrice() : request.getPrice());
 
         if (request.getStatus() != null) {
             room.setStatus(request.getStatus());
@@ -123,7 +126,7 @@ public class RoomService {
         roomRepository.deleteById(id);
     }
 
-    public List<Integer> getDistinctFloorNumbers(Integer buildingId) {
+    public List<Byte> getDistinctFloorNumbers(Integer buildingId) {
         return roomRepository.findDistinctFloorNumbersByBuildingId(buildingId);
     }
 

@@ -2,7 +2,9 @@ package com.dormitory.management.modules.infrastructure.service;
 
 import com.dormitory.management.modules.infrastructure.dto.RoomTypeRequest;
 import com.dormitory.management.modules.infrastructure.dto.RoomTypeResponse;
+import com.dormitory.management.modules.infrastructure.entity.Room;
 import com.dormitory.management.modules.infrastructure.entity.RoomType;
+import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
 import com.dormitory.management.modules.infrastructure.repository.RoomTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 public class RoomTypeService {
 
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
 
     public List<RoomTypeResponse> getAllRoomTypes() {
         return roomTypeRepository.findAll().stream()
@@ -54,11 +57,23 @@ public class RoomTypeService {
             throw new IllegalArgumentException("RoomType name already exists");
         }
 
+        boolean priceChanged = !roomType.getDefaultPrice().equals(request.getDefaultPrice());
+
         roomType.setTypeName(request.getTypeName());
         roomType.setDefaultCapacity(request.getDefaultCapacity());
         roomType.setDefaultPrice(request.getDefaultPrice());
 
         RoomType updatedRoomType = roomTypeRepository.save(roomType);
+
+        // Khi giá loại phòng thay đổi, đồng bộ giá tất cả phòng thuộc loại này
+        if (priceChanged) {
+            List<Room> rooms = roomRepository.findByRoomType_RoomTypeId(id);
+            for (Room room : rooms) {
+                room.setPrice(request.getDefaultPrice());
+            }
+            roomRepository.saveAll(rooms);
+        }
+
         return mapToResponse(updatedRoomType);
     }
 

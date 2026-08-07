@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { getStudentProfile, updateStudentProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './StudentProfile.css';
 
 const StudentProfile = () => {
+  const { user, login } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +47,24 @@ const StudentProfile = () => {
     if (!isEditing) {
       setIsEditing(true);
     } else {
+      // Validate không được để trống
+      if (!formData.fullName.trim()) {
+        setError('Họ và tên không được để trống.');
+        return;
+      }
+      if (!formData.phoneNumber.trim()) {
+        setError('Số điện thoại không được để trống.');
+        return;
+      }
+      if (!/^\d{9,11}$/.test(formData.phoneNumber.trim())) {
+        setError('Số điện thoại phải gồm 9–11 chữ số.');
+        return;
+      }
+      if (!formData.className.trim()) {
+        setError('Lớp sinh hoạt không được để trống.');
+        return;
+      }
+      setError('');
       setShowConfirm(true);
     }
   };
@@ -58,6 +78,10 @@ const StudentProfile = () => {
       setSuccessMsg('Cập nhật thông tin thành công!');
       setProfile(updatedProfile);
       setIsEditing(false);
+
+      if (user) {
+        login({ ...user, fullName: updatedProfile.fullName || formData.fullName });
+      }
     } catch (err) {
       setError('Có lỗi xảy ra khi cập nhật thông tin.');
     }
@@ -179,7 +203,7 @@ const StudentProfile = () => {
       {showConfirm && (
         <div className="confirm-modal-overlay">
           <div className="confirm-modal">
-            <h3>Xác nhận cập nhật</h3>
+            <h3 style={{ color: 'black' }}>Xác nhận cập nhật</h3>
             <p>Bạn có chắc chắn muốn lưu các thay đổi này không?</p>
             <div className="confirm-modal-actions">
               <button className="btn-modal-cancel" onClick={() => setShowConfirm(false)}>Hủy</button>

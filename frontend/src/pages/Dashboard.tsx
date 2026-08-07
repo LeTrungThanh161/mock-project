@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, DoorClosed, AlertCircle, Briefcase, Settings, Wrench, HardHat, Zap } from 'lucide-react';
+import { Users, DoorClosed, AlertCircle, Briefcase, Settings, Wrench, HardHat, Zap, Building2 } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
@@ -85,6 +85,22 @@ const Dashboard = () => {
       <div className="dash-stats-row">
         {user?.role === 'ADMIN' && (
           <>
+            <div className="dash-stat-card shortcut-card" onClick={() => navigate('/buildings')}>
+              <div className="dash-stat-top">
+                <p>CƠ SỞ HẠ TẦNG</p>
+                <div className="dash-icon-wrapper blue"><Building2 size={20} /></div>
+              </div>
+              <h3>Tòa nhà & Phòng</h3>
+              {/* <span className="dash-stat-sub">Quản lý cơ sở hạ tầng</span> */}
+            </div>
+            <div className="dash-stat-card shortcut-card" onClick={() => navigate('/accounts')}>
+              <div className="dash-stat-top">
+                <p>QUẢN LÝ TÀI KHOẢN</p>
+                <div className="dash-icon-wrapper gray"><Users size={20} /></div>
+              </div>
+              <h3>Tài khoản</h3>
+              <span className="dash-stat-sub">Quản lý người dùng</span>
+            </div>
             <div className="dash-stat-card shortcut-card" onClick={() => navigate('/pricing-tiers')}>
               <div className="dash-stat-top">
                 <p>CẤU HÌNH GIÁ</p>
@@ -113,6 +129,22 @@ const Dashboard = () => {
         )}
         {user?.role === 'MANAGER' && (
           <>
+            <div className="dash-stat-card shortcut-card" onClick={() => navigate('/buildings')}>
+              <div className="dash-stat-top">
+                <p>CƠ SỞ HẠ TẦNG</p>
+                <div className="dash-icon-wrapper blue"><Building2 size={20} /></div>
+              </div>
+              <h3>Tòa nhà & Phòng</h3>
+              {/* <span className="dash-stat-sub">Quản lý cơ sở hạ tầng</span> */}
+            </div>
+            <div className="dash-stat-card shortcut-card" onClick={() => navigate('/accounts')}>
+              <div className="dash-stat-top">
+                <p>QUẢN LÝ TÀI KHOẢN</p>
+                <div className="dash-icon-wrapper gray"><Users size={20} /></div>
+              </div>
+              <h3>Tài khoản</h3>
+              <span className="dash-stat-sub">Quản lý người dùng</span>
+            </div>
             <div className="dash-stat-card shortcut-card" onClick={() => navigate('/meter-readings')}>
               <div className="dash-stat-top">
                 <p>ĐIỆN & NƯỚC</p>

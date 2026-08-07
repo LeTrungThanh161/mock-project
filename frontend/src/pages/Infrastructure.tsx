@@ -4,6 +4,7 @@ import {
   getAllRooms, createRoom, updateRoom, getFloorsByBuilding,
   getAllRoomTypes, createRoomType, updateRoomType
 } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Infrastructure.css';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -41,7 +42,11 @@ interface Room {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function Infrastructure() {
-  const [activeTab, setActiveTab] = useState<'buildings' | 'rooms' | 'roomTypes'>('buildings');
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const [activeTab, setActiveTab] = useState<'buildings' | 'rooms' | 'roomTypes'>(
+    isAdmin ? 'buildings' : 'rooms'
+  );
   const [loading, setLoading] = useState(false);
 
   // ── Data states ──
@@ -54,6 +59,7 @@ export function Infrastructure() {
   const [buildingFilterGender, setBuildingFilterGender] = useState(''); // '', 'Male', 'Female', 'Mixed'
   const [roomFilterBuildingId, setRoomFilterBuildingId] = useState<number | ''>('');
   const [roomFilterFloor, setRoomFilterFloor] = useState<number | ''>('');
+  const [roomFilterOccupancy, setRoomFilterOccupancy] = useState('');
 
   // ── Modal states ──
   const [showBuildingModal, setShowBuildingModal] = useState(false);
@@ -95,10 +101,10 @@ export function Infrastructure() {
     }
   }, []);
 
-  const fetchRooms = useCallback(async (bId?: number) => {
+  const fetchRooms = useCallback(async (bId?: number, fNum?: number) => {
     setLoading(true);
     try {
-      const data = await getAllRooms(bId);
+      const data = await getAllRooms(bId, fNum);
       setRooms(data);
     } catch (err) {
       console.error(err);
@@ -124,7 +130,10 @@ export function Infrastructure() {
     } else if (activeTab === 'rooms') {
       fetchBuildings(); // Cần danh sách tòa để filter và form
       fetchRoomTypes(); // Cần loại phòng cho form
-      fetchRooms(roomFilterBuildingId ? Number(roomFilterBuildingId) : undefined);
+      fetchRooms(
+        roomFilterBuildingId ? Number(roomFilterBuildingId) : undefined,
+        roomFilterFloor !== '' ? Number(roomFilterFloor) : undefined
+      );
       if (roomFilterBuildingId) {
         fetchFloors(Number(roomFilterBuildingId));
       } else {
@@ -136,18 +145,33 @@ export function Infrastructure() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // Handle building filter change for rooms
+  // Handle building and floor filter change for rooms
   useEffect(() => {
     if (activeTab === 'rooms') {
-      fetchRooms(roomFilterBuildingId ? Number(roomFilterBuildingId) : undefined);
+      fetchRooms(
+        roomFilterBuildingId ? Number(roomFilterBuildingId) : undefined,
+        roomFilterFloor !== '' ? Number(roomFilterFloor) : undefined
+      );
+    }
+  }, [roomFilterBuildingId, roomFilterFloor, fetchRooms, activeTab]);
+
+  // Fetch floors when building changes
+  useEffect(() => {
+    if (activeTab === 'rooms') {
       if (roomFilterBuildingId) {
         fetchFloors(Number(roomFilterBuildingId));
       } else {
         setFloors([]);
       }
-      setRoomFilterFloor(''); // Reset tầng khi đổi tòa
     }
-  }, [roomFilterBuildingId, fetchRooms, fetchFloors, activeTab]);
+  }, [roomFilterBuildingId, fetchFloors, activeTab]);
+
+  // Automatically select the building for MANAGER role
+  useEffect(() => {
+    if (!isAdmin && buildings.length === 1 && roomFilterBuildingId === '') {
+      setRoomFilterBuildingId(buildings[0].buildingId);
+    }
+  }, [buildings, isAdmin, roomFilterBuildingId]);
 
   // ─── Format Utils ────────────────────────────────────────────────────────
 
@@ -158,7 +182,6 @@ export function Infrastructure() {
   const translateGender = (gender: string) => {
     if (gender === 'Male') return 'Nam';
     if (gender === 'Female') return 'Nữ';
-    if (gender === 'Mixed') return 'Hỗn hợp';
     return gender;
   };
 
@@ -183,8 +206,24 @@ export function Infrastructure() {
   };
 
   const handleSaveBuilding = async () => {
-    if (!buildingForm.name || !buildingForm.totalFloors) {
-      alert('Vui lòng nhập Tên tòa nhà và Số tầng');
+    if (!buildingForm.name.trim()) {
+      alert('Vui lòng nhập Tên tòa nhà.');
+      return;
+    }
+    if (!buildingForm.totalFloors || buildingForm.totalFloors.toString().trim() === '') {
+      alert('Vui lòng nhập Số tầng.');
+      return;
+    }
+    if (Number(buildingForm.totalFloors) <= 0) {
+      alert('Số tầng phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(buildingForm.totalFloors))) {
+      alert('Số tầng phải là số nguyên.');
+      return;
+    }
+    if (!buildingForm.genderType) {
+      alert('Vui lòng chọn Đối tượng áp dụng.');
       return;
     }
     const payload = {
@@ -234,8 +273,28 @@ export function Infrastructure() {
   };
 
   const handleSaveRoomType = async () => {
-    if (!roomTypeForm.typeName || !roomTypeForm.defaultCapacity || !roomTypeForm.defaultPrice) {
-      alert('Vui lòng nhập đầy đủ thông tin');
+    if (!roomTypeForm.typeName.trim()) {
+      alert('Vui lòng nhập Tên loại phòng.');
+      return;
+    }
+    if (!roomTypeForm.defaultCapacity || roomTypeForm.defaultCapacity.toString().trim() === '') {
+      alert('Vui lòng nhập Sức chứa.');
+      return;
+    }
+    if (Number(roomTypeForm.defaultCapacity) <= 0) {
+      alert('Sức chứa phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(roomTypeForm.defaultCapacity))) {
+      alert('Sức chứa phải là số nguyên.');
+      return;
+    }
+    if (roomTypeForm.defaultPrice === '' || roomTypeForm.defaultPrice.toString().trim() === '') {
+      alert('Vui lòng nhập Giá thuê mặc định.');
+      return;
+    }
+    if (Number(roomTypeForm.defaultPrice) < 0) {
+      alert('Giá thuê phải là số ≥ 0.');
       return;
     }
     const payload = {
@@ -305,8 +364,54 @@ export function Infrastructure() {
   };
 
   const handleSaveRoom = async () => {
-    if (!roomForm.buildingId || !roomForm.roomNumber || !roomForm.maxCapacity) {
-      alert('Vui lòng nhập đầy đủ Số phòng và Sức chứa');
+    if (!roomForm.buildingId) {
+      alert('Vui lòng chọn Tòa nhà.');
+      return;
+    }
+    if (!editingRoom) {
+      if (!roomForm.roomNumber || roomForm.roomNumber.trim() === '') {
+        alert('Vui lòng nhập Số phòng.');
+        return;
+      }
+      const roomNumber = roomForm.roomNumber.trim();
+      if (!/^\d{3}$/.test(roomNumber)) {
+        alert('Số phòng phải gồm 3 chữ số (ví dụ: 101, 205, 312).');
+        return;
+      }
+
+      const isDuplicate = rooms.some(
+        r => r.buildingId === Number(roomForm.buildingId) &&
+          r.roomNumber === roomNumber
+      );
+      if (isDuplicate) {
+        alert('Phòng đã tồn tại trong tòa nhà này.');
+        return;
+      }
+    }
+
+    if (!Number.isInteger(Number(roomForm.roomNumber.trim()))) {
+      alert('Vui lòng nhập Số phòng là số nguyên.');
+      return;
+    }
+    if (!roomForm.maxCapacity || roomForm.maxCapacity.toString().trim() === '') {
+      alert('Vui lòng nhập Sức chứa tối đa.');
+      return;
+    }
+    if (Number(roomForm.maxCapacity) <= 0) {
+      alert('Sức chứa tối đa phải là số nguyên lớn hơn 0.');
+      return;
+    }
+    if (!Number.isInteger(Number(roomForm.maxCapacity))) {
+      alert('Sức chứa tối đa phải là số nguyên.');
+      return;
+    }
+    if (roomForm.price !== '' && Number(roomForm.price) < 0) {
+      alert('Giá phòng phải là số ≥ 0.');
+      return;
+    }
+    // Khi đang sửa thì status cũng bắt buộc
+    if (editingRoom && !roomForm.status) {
+      alert('Vui lòng chọn Trạng thái.');
       return;
     }
     const payload = {
@@ -360,9 +465,14 @@ export function Infrastructure() {
   };
 
   const filteredRooms = useMemo(() => {
-    if (!roomFilterFloor) return rooms;
-    return rooms.filter(r => r.floorNumber === Number(roomFilterFloor));
-  }, [rooms, roomFilterFloor]);
+    let result = rooms;
+    if (roomFilterOccupancy === 'full') {
+      result = result.filter(r => r.currentOccupancy >= r.maxCapacity);
+    } else if (roomFilterOccupancy === 'available') {
+      result = result.filter(r => r.currentOccupancy < r.maxCapacity);
+    }
+    return result;
+  }, [rooms, roomFilterOccupancy]);
 
   // ─── Renders ─────────────────────────────────────────────────────────────
 
@@ -370,14 +480,16 @@ export function Infrastructure() {
     <div className="infra-container">
       <h2>QUẢN LÝ CƠ SỞ HẠ TẦNG</h2>
       <div className="infra-subtitle">
-        Thiết lập cấu hình vật lý KTX: Quản lý Tòa nhà, Sơ đồ Phòng và Danh mục Loại phòng.
+        Thiết lập cấu hình vật lý KTX
       </div>
 
       <div className="infra-tabs-container">
         <div className="infra-tabs">
-          <button className={`infra-tab ${activeTab === 'buildings' ? 'active' : ''}`} onClick={() => setActiveTab('buildings')}>
-            DANH SÁCH TÒA NHÀ
-          </button>
+          {isAdmin && (
+            <button className={`infra-tab ${activeTab === 'buildings' ? 'active' : ''}`} onClick={() => setActiveTab('buildings')}>
+              DANH SÁCH TÒA NHÀ
+            </button>
+          )}
           <button className={`infra-tab ${activeTab === 'rooms' ? 'active' : ''}`} onClick={() => setActiveTab('rooms')}>
             SƠ ĐỒ & QUẢN LÝ PHÒNG
           </button>
@@ -388,7 +500,7 @@ export function Infrastructure() {
       </div>
 
       {/* ── Tab: Buildings ────────────────────────────────────────────────── */}
-      {activeTab === 'buildings' && (
+      {isAdmin && activeTab === 'buildings' && (
         <>
           <div className="section-header">DANH SÁCH TÒA NHÀ TRONG HỆ THỐNG</div>
           <div className="infra-filters">
@@ -398,7 +510,6 @@ export function Infrastructure() {
                 <option value="">Tất cả</option>
                 <option value="Male">Nam</option>
                 <option value="Female">Nữ</option>
-                <option value="Mixed">Hỗn hợp</option>
               </select>
             </div>
             <div className="infra-spacer" />
@@ -445,27 +556,31 @@ export function Infrastructure() {
         <>
           <div className="section-header">SƠ ĐỒ & QUẢN LÝ PHÒNG HẠ TẦNG</div>
           <div className="infra-filters">
+            {isAdmin && (
+              <div className="infra-filter-group">
+                <label>Chọn Tòa nhà:</label>
+                <select value={roomFilterBuildingId} onChange={e => {
+                  setRoomFilterBuildingId(e.target.value ? Number(e.target.value) : '');
+                  setRoomFilterFloor('');
+                }}>
+                  <option value="">Tất cả</option>
+                  {buildings.map(b => (
+                    <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="infra-filter-group">
-              <label>Chọn Tòa nhà:</label>
-              <select value={roomFilterBuildingId} onChange={e => setRoomFilterBuildingId(e.target.value ? Number(e.target.value) : '')}>
+              <label>Tình trạng:</label>
+              <select value={roomFilterOccupancy} onChange={e => setRoomFilterOccupancy(e.target.value)}>
                 <option value="">Tất cả</option>
-                {buildings.map(b => (
-                  <option key={b.buildingId} value={b.buildingId}>{b.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="infra-filter-group">
-              <label>Chọn Tầng:</label>
-              <select value={roomFilterFloor} onChange={e => setRoomFilterFloor(e.target.value ? Number(e.target.value) : '')} disabled={!roomFilterBuildingId}>
-                <option value="">Tất cả</option>
-                {floors.map(f => (
-                  <option key={f} value={f}>Tầng {f}</option>
-                ))}
+                <option value="full">Đã đầy</option>
+                <option value="available">Chưa đầy</option>
               </select>
             </div>
             <div className="infra-spacer" />
-            <button className="btn-add" onClick={() => handleOpenRoomModal()}>+ TẠO PHÒNG MỚI</button>
-            <button className="btn-disabled" title="Sắp ra mắt">📥 Import Excel</button>
+            {isAdmin && <button className="btn-add" onClick={() => handleOpenRoomModal()}>+ TẠO PHÒNG MỚI</button>}
           </div>
 
           <table className="infra-table">
@@ -475,7 +590,7 @@ export function Infrastructure() {
                 <th>Tòa nhà</th>
                 <th>Tầng</th>
                 <th>Loại phòng</th>
-                <th>Sức chứa</th>
+                <th>Số người ở</th>
                 <th>Trạng thái kỹ thuật</th>
                 <th>Thao tác</th>
               </tr>
@@ -485,35 +600,43 @@ export function Infrastructure() {
                 <tr><td colSpan={7} className="infra-loading">Đang tải...</td></tr>
               ) : filteredRooms.length === 0 ? (
                 <tr><td colSpan={7} className="infra-loading">Không có dữ liệu</td></tr>
-              ) : filteredRooms.map(r => (
-                <tr key={r.roomId}>
-                  <td>{r.roomNumber}</td>
-                  <td>{r.buildingName}</td>
-                  <td>Tầng {r.floorNumber}</td>
-                  <td>{r.roomTypeName || '—'}</td>
-                  <td>{r.maxCapacity} người</td>
-                  <td className={
-                    r.status === 'UnderMaintenance' ? 'status-maintenance' :
-                    r.status === 'Available' ? 'status-available' : 'status-full'
-                  }>
-                    {translateRoomStatus(r.status)}
-                  </td>
-                  <td>
-                    <div className="infra-action-buttons">
-                      <button className="btn-edit" onClick={() => handleOpenRoomModal(r)}>✏️ Sửa</button>
-                      {r.status === 'UnderMaintenance' ? (
-                        <button className="btn-activate" onClick={() => handleToggleMaintenance(r)}>🟢 Mở hoạt động</button>
-                      ) : (
-                        <button className="btn-maintenance" onClick={() => handleToggleMaintenance(r)}>🔧 Đánh dấu Bảo trì</button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              ) : filteredRooms.map(r => {
+                const isFull = r.currentOccupancy >= r.maxCapacity;
+                return (
+                  <tr key={r.roomId}>
+                    <td>{r.roomNumber}</td>
+                    <td>{r.buildingName}</td>
+                    <td>Tầng {r.floorNumber}</td>
+                    <td>{r.roomTypeName || '—'}</td>
+                    <td>
+                      <span className={isFull ? 'occupancy-full' : 'occupancy-available'}>
+                        {r.currentOccupancy}/{r.maxCapacity}
+                      </span>
+                    </td>
+                    <td className={
+                      r.status === 'UnderMaintenance' ? 'status-maintenance' :
+                        r.status === 'Available' ? 'status-available' : 'status-full'
+                    }>
+                      {translateRoomStatus(r.status)}
+                    </td>
+                    <td>
+                      <div className="infra-action-buttons">
+                        {isAdmin && <button className="btn-edit" onClick={() => handleOpenRoomModal(r)}>✏️ Sửa</button>}
+                        {r.status === 'UnderMaintenance' ? (
+                          <button className="btn-activate" onClick={() => handleToggleMaintenance(r)}>🟢 Mở hoạt động</button>
+                        ) : (
+                          <button className="btn-maintenance" onClick={() => handleToggleMaintenance(r)}>🔧 Đánh dấu Bảo trì</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </>
       )}
+
 
       {/* ── Tab: Room Types ───────────────────────────────────────────────── */}
       {activeTab === 'roomTypes' && (
@@ -521,7 +644,7 @@ export function Infrastructure() {
           <div className="section-header">DANH MỤC LOẠI PHÒNG & ĐƠN GIÁ CHUẨN</div>
           <div className="infra-filters">
             <div className="infra-spacer" />
-            <button className="btn-add" onClick={() => handleOpenRoomTypeModal()}>+ THÊM LOẠI PHÒNG MỚI</button>
+            {isAdmin && <button className="btn-add" onClick={() => handleOpenRoomTypeModal()}>+ THÊM LOẠI PHÒNG MỚI</button>}
           </div>
 
           <table className="infra-table">
@@ -531,7 +654,7 @@ export function Infrastructure() {
                 <th>Tên loại phòng</th>
                 <th>Sức chứa mặc định</th>
                 <th>Giá thuê / Giường / Tháng</th>
-                <th>Thao tác</th>
+                {isAdmin && <th>Thao tác</th>}
               </tr>
             </thead>
             <tbody>
@@ -545,9 +668,11 @@ export function Infrastructure() {
                   <td>{rt.typeName}</td>
                   <td>{rt.defaultCapacity} giường</td>
                   <td className="price-cell">{formatPrice(rt.defaultPrice)}</td>
-                  <td>
-                    <button className="btn-edit" onClick={() => handleOpenRoomTypeModal(rt)}>✏️ Sửa</button>
-                  </td>
+                  {isAdmin && (
+                    <td>
+                      <button className="btn-edit" onClick={() => handleOpenRoomTypeModal(rt)}>✏️ Sửa</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -583,7 +708,6 @@ export function Infrastructure() {
                 <div className="infra-radio-group">
                   <label><input type="radio" checked={buildingForm.genderType === 'Male'} onChange={() => setBuildingForm(f => ({ ...f, genderType: 'Male' }))} /> Nam</label>
                   <label><input type="radio" checked={buildingForm.genderType === 'Female'} onChange={() => setBuildingForm(f => ({ ...f, genderType: 'Female' }))} /> Nữ</label>
-                  <label><input type="radio" checked={buildingForm.genderType === 'Mixed'} onChange={() => setBuildingForm(f => ({ ...f, genderType: 'Mixed' }))} /> Hỗn hợp</label>
                 </div>
               </div>
             </div>
@@ -630,7 +754,11 @@ export function Infrastructure() {
         <div className="infra-modal-backdrop">
           <div className="infra-modal">
             <div className="infra-modal-header">
-              <h3>{editingRoom ? 'CẬP NHẬT PHÒNG' : 'TẠO PHÒNG MỚI'}</h3>
+              <h3>
+                {editingRoom
+                  ? `CẬP NHẬT PHÒNG: ${editingRoom.roomNumber} - ${editingRoom.buildingName}`
+                  : 'TẠO PHÒNG MỚI'}
+              </h3>
               <button className="infra-close-btn" onClick={() => setShowRoomModal(false)}>✕</button>
             </div>
             <div className="infra-modal-body">
@@ -652,10 +780,17 @@ export function Infrastructure() {
                   ))}
                 </select>
               </div>
-              <div className="infra-form-group">
-                <label>Số phòng (*):</label>
-                <input type="text" value={roomForm.roomNumber} onChange={e => setRoomForm(f => ({ ...f, roomNumber: e.target.value }))} placeholder="VD: 101, B205..." />
-              </div>
+              {!editingRoom && (
+                <div className="infra-form-group">
+                  <label>Số phòng (*):</label>
+                  <input
+                    type="text"
+                    value={roomForm.roomNumber}
+                    onChange={e => setRoomForm(f => ({ ...f, roomNumber: e.target.value }))}
+                    placeholder="VD: 101, B205..."
+                  />
+                </div>
+              )}
               <div className="infra-form-group">
                 <label>Sức chứa tối đa (*):</label>
                 <input type="number" value={roomForm.maxCapacity} onChange={e => setRoomForm(f => ({ ...f, maxCapacity: e.target.value }))} />

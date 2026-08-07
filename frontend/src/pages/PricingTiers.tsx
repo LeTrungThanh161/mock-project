@@ -55,7 +55,39 @@ export const PricingTiers = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const checkOverlap = () => {
+    const sameTypeTiers = tiers.filter(
+      (t) => t.utilityType === formData.utilityType && t.tierId !== editingId
+    );
+
+    const newFrom = formData.fromUnit ?? 0;
+    const newTo = formData.toUnit;
+
+    for (const tier of sameTypeTiers) {
+      const existingFrom = tier.fromUnit;
+      const existingTo = tier.toUnit;
+
+      const isALessThanOrEqualToD = existingTo === null || newFrom <= existingTo;
+      const isCLessThanOrEqualToB = newTo === null || existingFrom <= newTo;
+
+      if (isALessThanOrEqualToD && isCLessThanOrEqualToB) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleSave = () => {
+    if (formData.toUnit !== null && formData.fromUnit !== undefined && formData.fromUnit > formData.toUnit) {
+      alert('Giá trị "Từ" không được lớn hơn giá trị "Đến".');
+      return;
+    }
+
+    if (checkOverlap()) {
+      alert('Khoảng giá trị này bị trùng lặp với một bậc giá đã có của cùng dịch vụ!');
+      return;
+    }
+
     if (editingId) {
       api.put(`/admin/pricing-tiers/${editingId}`, formData)
         .then(() => {
@@ -70,11 +102,11 @@ export const PricingTiers = () => {
     }
     // reset form
     setFormData({
-      utilityType: 'ELECTRICITY',
+      utilityType: formData.utilityType, // Keep current utility type
       tierOrder: (formData.tierOrder || 1) + 1, // Suggest next tier order
-      fromUnit: 0,
-      toUnit: 50,
-      unitPrice: 1800
+      fromUnit: (formData.toUnit !== null ? formData.toUnit + 1 : 0), // Suggest next fromUnit based on previous toUnit
+      toUnit: null,
+      unitPrice: formData.unitPrice ?? 1800
     });
   };
 
@@ -159,7 +191,6 @@ export const PricingTiers = () => {
                 <label>Đến (kWh/m³)</label>
                 <input
                   type="number"
-                  placeholder="Để trống nếu không giới hạn"
                   value={formData.toUnit === null ? '' : (formData.toUnit ?? 50)}
                   onChange={(e) => handleInputChange('toUnit', e.target.value === '' ? null : parseFloat(e.target.value))}
                 />
@@ -195,7 +226,9 @@ export const PricingTiers = () => {
                 </button>
               )}
             </div>
-            {/* <p className="pt-note">* Thay đổi sẽ áp dụng cho kỳ thanh toán tiếp theo. Vui lòng kiểm tra kỹ phạm vi và đơn giá.</p> */}
+            <p className="pt-note" style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
+              * Ghi chú: Để trống trường "Đến (kWh/m³)" nếu không giới hạn.
+            </p>
           </div>
         )}
 
@@ -272,7 +305,7 @@ export const PricingTiers = () => {
           {totalPages > 0 && (
             <div className="pt-pagination">
               <span>Đang hiển thị {currentTiers.length} trên {tiers.length} bản ghi</span>
-              <div className="pt-page-controls">
+              <div className="global-pagination">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}

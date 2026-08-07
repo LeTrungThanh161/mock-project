@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import StudentProfile from './pages/StudentProfile';
 import { PricingTiers } from './pages/PricingTiers';
@@ -19,10 +20,15 @@ import { Accounts } from './pages/Accounts';
 import './App.css';
 import { useEffect } from 'react';
 
-// Guard: Nếu chưa đăng nhập → chuyển về /login
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   return user ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+// Guard: Ngăn chặn role STUDENT truy cập bằng URL
+const NonStudentRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  return user?.role !== 'STUDENT' ? <>{children}</> : <Navigate to="/profile" replace />;
 };
 
 const RoleBasedInvoices = () => {
@@ -41,6 +47,7 @@ function AppRoutes() {
       {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* Private (cần đăng nhập) */}
       <Route
@@ -55,9 +62,11 @@ function AppRoutes() {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="helpdesk" element={<RoleBasedHelpdesk />} />
-        <Route path="pricing-tiers" element={<PricingTiers />} />
-        <Route path="meter-readings" element={<MeterReadings />} />
-        <Route path="technicians" element={<Technicians />} />
+        
+        {/* Protected Routes (Chỉ cho Admin/Manager) */}
+        <Route path="pricing-tiers" element={<NonStudentRoute><PricingTiers /></NonStudentRoute>} />
+        <Route path="meter-readings" element={<NonStudentRoute><MeterReadings /></NonStudentRoute>} />
+        <Route path="technicians" element={<NonStudentRoute><Technicians /></NonStudentRoute>} />
 
         {/* Placeholder routes */}
         <Route path="buildings" element={<Infrastructure />} />

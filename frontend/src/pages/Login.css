@@ -50,7 +50,7 @@
 }
 
 .login-field {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .login-field label {
@@ -88,7 +88,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.5rem;
+  justify-content: right;
+
 }
 
 .login-remember {
@@ -110,7 +112,10 @@
   color: #1a6fb5;
   text-decoration: none;
 }
-.login-forgot:hover { text-decoration: underline; }
+
+.login-forgot:hover {
+  text-decoration: underline;
+}
 
 /* Button */
 .login-btn {
@@ -127,8 +132,15 @@
   transition: background-color 0.2s;
   margin-bottom: 1.25rem;
 }
-.login-btn:hover:not(:disabled) { background-color: #145d99; }
-.login-btn:disabled { opacity: 0.6; cursor: default; }
+
+.login-btn:hover:not(:disabled) {
+  background-color: #145d99;
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 /* Register link */
 .login-register {
@@ -137,12 +149,16 @@
   color: #555;
   margin: 0;
 }
+
 .login-register a {
   color: #1a6fb5;
   text-decoration: none;
   font-weight: 600;
 }
-.login-register a:hover { text-decoration: underline; }
+
+.login-register a:hover {
+  text-decoration: underline;
+}
 
 /* Error message */
 .login-error {

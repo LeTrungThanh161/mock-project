@@ -21,10 +21,10 @@ const Topbar = () => {
         {/* Placeholder for search if needed */}
       </div>
       <div className="topbar-actions">
-        <button className="icon-btn">
+        {/* <button className="icon-btn">
           <Bell size={20} />
           <span className="badge-dot"></span>
-        </button>
+        </button> */}
         {user && (
           <div className="user-profile">
             <div className="avatar">{initials}</div>

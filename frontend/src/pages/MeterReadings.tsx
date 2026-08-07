@@ -59,7 +59,7 @@ export const MeterReadings = () => {
   // Logic kiểm tra nếu chưa qua tháng hiện tại (selected > current month) thì không cho nhập
   const currentDate = new Date();
   const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-  const isLocked = month > currentMonthStr;
+  const isLocked = month !== currentMonthStr;
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -352,7 +352,7 @@ export const MeterReadings = () => {
           <div className="mr-pagination-info-controls">
             <span>Đang hiển thị {currentReadings.length} trên {readings.length} bản ghi</span>
             {totalPages > 0 && (
-              <div className="mr-page-controls">
+              <div className="global-pagination">
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
                 {getPageNumbers().map(pageNum => (
                   <button
