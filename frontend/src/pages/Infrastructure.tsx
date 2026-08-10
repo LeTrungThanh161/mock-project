@@ -368,14 +368,33 @@ export function Infrastructure() {
       alert('Vui lòng chọn Tòa nhà.');
       return;
     }
+
+    // Tìm thông tin tòa nhà đã chọn để lấy totalFloors
+    const selectedBuilding = buildings.find(b => b.buildingId === Number(roomForm.buildingId));
+
     if (!editingRoom) {
       if (!roomForm.roomNumber || roomForm.roomNumber.trim() === '') {
         alert('Vui lòng nhập Số phòng.');
         return;
       }
       const roomNumber = roomForm.roomNumber.trim();
-      if (!/^\d{3}$/.test(roomNumber)) {
-        alert('Số phòng phải gồm 3 chữ số (ví dụ: 101, 205, 312).');
+
+      // Số phòng chỉ được chứa chữ số, tối thiểu 3 ký tự
+      if (!/^\d{3,}$/.test(roomNumber)) {
+        alert('Số phòng chỉ được chứa chữ số và phải có ít nhất 3 ký tự (VD: 101, 205, 1201).');
+        return;
+      }
+
+      // Validate floorNumber theo logic computed column DB: floor(roomNumber / 100)
+      const floorFromRoomNumber = Math.floor(parseInt(roomNumber) / 100);
+
+      if (floorFromRoomNumber < 1) {
+        alert('Số phòng không hợp lệ: 2 chữ số cuối là số phòng trong tầng, các chữ số còn lại là số tầng (tầng phải ≥ 1).\nVí dụ: 101 → tầng 1, 205 → tầng 2.');
+        return;
+      }
+
+      if (selectedBuilding && floorFromRoomNumber > selectedBuilding.totalFloors) {
+        alert(`Số phòng thuộc tầng ${floorFromRoomNumber}, nhưng tòa nhà "${selectedBuilding.name}" chỉ có ${selectedBuilding.totalFloors} tầng.`);
         return;
       }
 
@@ -387,11 +406,6 @@ export function Infrastructure() {
         alert('Phòng đã tồn tại trong tòa nhà này.');
         return;
       }
-    }
-
-    if (!Number.isInteger(Number(roomForm.roomNumber.trim()))) {
-      alert('Vui lòng nhập Số phòng là số nguyên.');
-      return;
     }
     if (!roomForm.maxCapacity || roomForm.maxCapacity.toString().trim() === '') {
       alert('Vui lòng nhập Sức chứa tối đa.');
@@ -787,7 +801,7 @@ export function Infrastructure() {
                     type="text"
                     value={roomForm.roomNumber}
                     onChange={e => setRoomForm(f => ({ ...f, roomNumber: e.target.value }))}
-                    placeholder="VD: 101, B205..."
+                    placeholder="VD: 101, 205, 1201..."
                   />
                 </div>
               )}
