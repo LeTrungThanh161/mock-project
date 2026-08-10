@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 public class UtilityService {
 
     private static final Logger log = LoggerFactory.getLogger(UtilityService.class);
-    private final StaffRepository staffRepository;
     private final MeterReadingRepository meterReadingRepository;
     private final PricingTierRepository pricingTierRepository;
     private final InvoiceRepository invoiceRepository;

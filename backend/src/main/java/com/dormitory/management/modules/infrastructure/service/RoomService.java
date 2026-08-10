@@ -57,6 +57,25 @@ public class RoomService {
                     .orElseThrow(() -> new IllegalArgumentException("RoomType not found"));
         }
 
+        // Validate format số phòng: chỉ chứa chữ số, tối thiểu 3 ký tự
+        String roomNumber = request.getRoomNumber();
+        if (roomNumber == null || !roomNumber.matches("^\\d{3,}$")) {
+            throw new IllegalArgumentException(
+                    "Số phòng chỉ được chứa chữ số và phải có ít nhất 3 ký tự (VD: 101, 205, 1201).");
+        }
+
+        // Validate tầng theo logic computed column DB: floorNumber = roomNumber / 100
+        int floorFromRoomNumber = Integer.parseInt(roomNumber) / 100;
+        if (floorFromRoomNumber < 1) {
+            throw new IllegalArgumentException(
+                    "Số phòng không hợp lệ: 2 chữ số cuối là số phòng trong tầng, các chữ số còn lại là số tầng (tầng phải ≥ 1).");
+        }
+        if (floorFromRoomNumber > building.getTotalFloors()) {
+            throw new IllegalArgumentException(
+                    "Số phòng thuộc tầng " + floorFromRoomNumber
+                    + " nhưng tòa nhà \"" + building.getName() + "\" chỉ có " + building.getTotalFloors() + " tầng.");
+        }
+
         if (roomRepository.existsByBuilding_BuildingIdAndRoomNumber(request.getBuildingId(), request.getRoomNumber())) {
             throw new IllegalArgumentException("Room number already exists in this building");
         }
@@ -85,6 +104,28 @@ public class RoomService {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found with id: " + id));
 
+        Building building = buildingRepository.findById(request.getBuildingId())
+                .orElseThrow(() -> new IllegalArgumentException("Building not found"));
+
+        // Validate format số phòng: chỉ chứa chữ số, tối thiểu 3 ký tự
+        String roomNumber = request.getRoomNumber();
+        if (roomNumber == null || !roomNumber.matches("^\\d{3,}$")) {
+            throw new IllegalArgumentException(
+                    "Số phòng chỉ được chứa chữ số và phải có ít nhất 3 ký tự (VD: 101, 205, 1201).");
+        }
+
+        // Validate tầng theo logic computed column DB: floorNumber = roomNumber / 100
+        int floorFromRoomNumber = Integer.parseInt(roomNumber) / 100;
+        if (floorFromRoomNumber < 1) {
+            throw new IllegalArgumentException(
+                    "Số phòng không hợp lệ: 2 chữ số cuối là số phòng trong tầng, các chữ số còn lại là số tầng (tầng phải ≥ 1).");
+        }
+        if (floorFromRoomNumber > building.getTotalFloors()) {
+            throw new IllegalArgumentException(
+                    "Số phòng thuộc tầng " + floorFromRoomNumber
+                    + " nhưng tòa nhà \"" + building.getName() + "\" chỉ có " + building.getTotalFloors() + " tầng.");
+        }
+
         // Nếu thay đổi Building hoặc RoomNumber, check xem có bị trùng không
         if (!room.getBuilding().getBuildingId().equals(request.getBuildingId())
                 || !room.getRoomNumber().equals(request.getRoomNumber())) {
@@ -93,9 +134,6 @@ public class RoomService {
                 throw new IllegalArgumentException("Room number already exists in this building");
             }
         }
-
-        Building building = buildingRepository.findById(request.getBuildingId())
-                .orElseThrow(() -> new IllegalArgumentException("Building not found"));
 
         RoomType roomType = null;
         if (request.getRoomTypeId() != null) {

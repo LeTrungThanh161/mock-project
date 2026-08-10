@@ -372,11 +372,11 @@ export const StudentInvoices = () => {
       {/* Modal chọn cổng thanh toán */}
       {showPayment && selectedInv && (
         <div className="si-modal-overlay">
-          <div className="si-modal">
-            <h3>Cổng thanh toán</h3>
-            <p>
+          <div  className="si-modal">
+            <h3 style={{ color: 'black' }}>Cổng thanh toán</h3>
+            <p style={{ color: 'black' }}>
               Chọn phương thức thanh toán cho hóa đơn{' '}
-              <strong>{formatCurrency(selectedInv.total)}</strong>
+              <strong style={{ color: 'black' }}>{formatCurrency(selectedInv.total)}</strong>
             </p>
             {error && (
               <p style={{ color: '#dc2626', fontSize: 14, marginTop: 8 }}>{error}</p>
@@ -396,13 +396,16 @@ export const StudentInvoices = () => {
               >
                 PayOS
               </button>
-              <button
+              
+              {/* <button
                 className="si-btn-pay"
                 onClick={() => handlePay('MOMO')}
                 disabled={paying}
               >
                 MoMo
-              </button>
+              </button> */}
+
+
             </div>
           </div>
         </div>
