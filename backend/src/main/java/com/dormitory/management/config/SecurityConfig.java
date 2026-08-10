@@ -23,86 +23,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.http.HttpMethod;
 import java.util.List;
 
-// ========================================================================
-// PHÂN QUYỀN THEO ROLE — BẢNG TÓM TẮT
-// ========================================================================
-//
-//  ROLE       | PHẠM VI TRUY CẬP
-// ------------|--------------------------------------------------------------
-//  Admin      | Toàn hệ thống (mọi endpoint). Không bị RLS giới hạn.
-//  Manager    | Chỉ dữ liệu tòa nhà mình phụ trách (RLS tự lọc ở DB).
-//  Student    | Chỉ dữ liệu của chính mình (profile, hợp đồng, hóa đơn...).
-//
-// ========================================================================
-// CHI TIẾT ENDPOINT THEO NHÓM TÍNH NĂNG
-// ========================================================================
-//
-// [1] AUTH — Xác thực (/api/auth/**)
-//     POST /api/auth/login              → PUBLIC (không cần token)
-//     POST /api/auth/register           → PUBLIC (Student tự đăng ký)
-//     GET  /api/auth/me                 → ADMIN, MANAGER, STUDENT
-//
-// [2] ADMIN MANAGEMENT (/api/admin/**)
-//     /api/admin/accounts/**            → ADMIN (quản lý tài khoản)
-//     /api/admin/staff/**               → ADMIN (tạo/sửa nhân viên)
-//     /api/admin/buildings/**           → ADMIN (thêm/sửa/xóa tòa nhà)
-//     /api/admin/room-types/**          → ADMIN (cấu hình loại phòng)
-//     /api/admin/pricing-tiers/**       → ADMIN (cấu hình giá điện/nước)
-//     /api/admin/reports/**             → ADMIN (xem toàn bộ báo cáo)
-//
-// [3] INFRASTRUCTURE — Tòa nhà & Phòng (/api/buildings/**, /api/rooms/**)
-//     GET  /api/buildings/**            → ADMIN, MANAGER (xem danh sách tòa nhà)
-//     GET  /api/rooms/**                → ADMIN, MANAGER, STUDENT (Student: xem phòng trống)
-//     POST /api/rooms/**                → ADMIN (tạo phòng mới)
-//     PUT  /api/rooms/**                → ADMIN, MANAGER (sửa thông tin phòng)
-//
-// [4] APPLICATIONS — Đăng ký phòng (/api/applications/**)
-//     POST /api/applications            → STUDENT (nộp đơn xin phòng)
-//     GET  /api/applications/my         → STUDENT (xem đơn của mình)
-//     GET  /api/applications            → ADMIN, MANAGER (xem tất cả đơn theo tòa nhà)
-//     PUT  /api/applications/{id}/approve  → ADMIN, MANAGER (duyệt đơn)
-//     PUT  /api/applications/{id}/reject   → ADMIN, MANAGER (từ chối đơn)
-//
-// [5] CONTRACTS — Hợp đồng (/api/contracts/**)
-//     GET  /api/contracts/my            → STUDENT (xem hợp đồng của mình)
-//     GET  /api/contracts               → ADMIN, MANAGER
-//     POST /api/contracts/{id}/renew    → ADMIN, MANAGER (gia hạn hợp đồng)
-//     POST /api/contracts/{id}/checkout → ADMIN, MANAGER (chấm dứt / trả phòng)
-//
-// [6] TEMPORARY ABSENCE — Tạm vắng (/api/temporary-absences/**)
-//     POST /api/temporary-absences      → STUDENT (nộp đơn xin tạm vắng)
-//     GET  /api/temporary-absences/my   → STUDENT (xem đơn tạm vắng của mình)
-//     GET  /api/temporary-absences      → ADMIN, MANAGER
-//     PUT  /api/temporary-absences/{id}/approve → ADMIN, MANAGER
-//
-// [7] METER READING — Chỉ số điện/nước (/api/meter-readings/**)
-//     POST /api/meter-readings          → ADMIN, MANAGER (nhập chỉ số)
-//     GET  /api/meter-readings          → ADMIN, MANAGER
-//
-// [8] INVOICES — Hóa đơn (/api/invoices/**)
-//     GET  /api/invoices/my             → STUDENT (xem hóa đơn của mình)
-//     GET  /api/invoices                → ADMIN, MANAGER
-//     POST /api/invoices/generate       → ADMIN, MANAGER (xuất hóa đơn hàng loạt)
-//     PUT  /api/invoices/{id}/pay       → ADMIN, MANAGER, STUDENT (ghi nhận thanh toán)
-//
-// [9] ISSUE TICKETS — Báo cáo sự cố (/api/issue-tickets/**)
-//     POST /api/issue-tickets           → STUDENT (báo cáo sự cố)
-//     GET  /api/issue-tickets/my        → STUDENT (xem sự cố của mình)
-//     GET  /api/issue-tickets           → ADMIN, MANAGER
-//     PUT  /api/issue-tickets/{id}/assign  → ADMIN, MANAGER (gán kỹ thuật viên)
-//     PUT  /api/issue-tickets/{id}/status  → ADMIN, MANAGER (cập nhật trạng thái)
-//
-// [10] TECHNICIANS — Kỹ thuật viên (/api/technicians/**)
-//     GET  /api/technicians             → ADMIN, MANAGER
-//     POST /api/technicians             → ADMIN, MANAGER (thêm kỹ thuật viên)
-//     PUT  /api/technicians/**          → ADMIN, MANAGER
-//
-// [11] STATISTICS & REPORTS — Thống kê (/api/statistics/**)
-//     GET  /api/statistics/occupancy    → ADMIN, MANAGER
-//     GET  /api/statistics/revenue      → ADMIN
-//     GET  /api/statistics/overdue      → ADMIN, MANAGER
-// ========================================================================
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity // Bật @PreAuthorize, @PostAuthorize trên Controller/Service
@@ -120,6 +40,9 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
+
+                                                // ── [0] BẮT BUỘC: CHO PHÉP TẤT CẢ REQUEST OPTIONS (CORS PREFLIGHT) ──────
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                                                 // ── [1] AUTH — Công khai
                                                 // ──────────────────────────────────────────────
@@ -228,15 +151,14 @@ public class SecurityConfig {
                                                                 "/api/students/**")
                                                 .hasRole("STUDENT")
                                                 .requestMatchers(
-                                                "/api/payments/callback/**"
-                                                ).permitAll()
+                                                                "/api/payments/callback/**")
+                                                .permitAll()
                                                 // Đăng ký phòng
                                                 .requestMatchers(
                                                                 "/api/contracts/register")
                                                 .hasAnyRole("STUDENT", "ADMIN", "MANAGER")
 
                                                 // ── [5] STUDENT — Tự nộp đơn (POST) ─────────────────────────────────
-                                                // Dùng @PreAuthorize trong Controller để kiểm soát chi tiết hơn
                                                 .requestMatchers(
                                                                 "/api/applications" // POST nộp đơn
                                                 ).hasAnyRole("STUDENT", "ADMIN", "MANAGER")
@@ -259,20 +181,26 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
 
-                // Cho phép Origin từ React/Vite (localhost:5173)
-                configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+                // Dùng setAllowedOriginPatterns để hỗ trợ wildcard cho Vercel và Localhost
+                configuration.setAllowedOriginPatterns(List.of(
+                        "https://quanliktxcpt.vercel.app",
+                        "https://*.vercel.app",
+                        "http://localhost:5173",
+                        "http://localhost:3000"
+                ));
 
-                // Cho phép các HTTP Methods
+                // Cho phép đầy đủ các HTTP Methods
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
                 // Cho phép gửi các Headers (như Authorization Bearer token, Content-Type...)
                 configuration.setAllowedHeaders(List.of("*"));
+                configuration.setExposedHeaders(List.of("*"));
 
-                // Cho phép truyền Cookie / Authentication Header nếu có
+                // Cho phép truyền Cookie / Authentication Header
                 configuration.setAllowCredentials(true);
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                // Áp dụng cho toàn bộ endpoint /api/**
+                // Áp dụng cho toàn bộ endpoint
                 source.registerCorsConfiguration("/**", configuration);
 
                 return source;
