@@ -1,11 +1,16 @@
 import axios from 'axios';
 
+// Lấy URL Backend từ Vercel Environment Variable
+// Nếu ở local (không có biến VITE_API_BASE_URL) thì mặc định chạy qua proxy '/api' của Vite
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseURL = envBaseUrl ? `${envBaseUrl}/api` : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 30 giây timeout
+  timeout: 10000,
 });
 
 // Thêm interceptor để đính kèm token (nếu có Auth)
