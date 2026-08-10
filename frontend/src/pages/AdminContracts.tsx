@@ -5,7 +5,6 @@ import {
   Clock, AlertTriangle, Building, Home
 } from 'lucide-react';
 import './AdminContracts.css';
-import { useAuth } from '../context/AuthContext';
 
 interface ContractItem {
   contractId: number;
@@ -26,8 +25,6 @@ interface ContractItem {
 }
 
 export function AdminContracts() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
   const [contracts, setContracts] = useState<ContractItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Filter, Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import './PricingTiers.css';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Eye, Printer, Zap } from 'lucide-react';
+import { Eye, Printer, Zap } from 'lucide-react';
 import './Invoices.css';
 import api, { exportInvoicesForBuilding } from '../services/api';
 import { useAuth } from '../context/AuthContext';
