@@ -187,6 +187,7 @@
 .sh-badge-status.blue { background: #bae6fd; color: #0284c7; }
 .sh-badge-status.gray { background: #f1f5f9; color: #64748b; }
 .sh-badge-status.orange { background: #ffedd5; color: #ea580c; }
+.sh-badge-status.red { background: #fee2e2; color: #dc2626; }
 
 .sh-assigned-badge {
   font-size: 10px;

@@ -248,21 +248,21 @@ export function AdminContracts() {
 
 
           {/* Phòng ở / Tòa */}
-          
-            <div className="filter-group">
-              <label>Tìm theo Phòng / Tòa</label>
-              <div className="filter-input-wrapper">
-                <Home size={16} className="filter-input-icon" />
-                <input
-                  type="text"
-                  className="filter-input"
-                  placeholder="Ví dụ: 101 | Tòa A"
-                  value={searchRoom}
-                  onChange={(e) => setSearchRoom(e.target.value)}
-                />
-              </div>
+
+          <div className="filter-group">
+            <label>Tìm theo Phòng / Tòa</label>
+            <div className="filter-input-wrapper">
+              <Home size={16} className="filter-input-icon" />
+              <input
+                type="text"
+                className="filter-input"
+                placeholder="Ví dụ: 101 | Tòa A"
+                value={searchRoom}
+                onChange={(e) => setSearchRoom(e.target.value)}
+              />
             </div>
-          
+          </div>
+
 
 
 
