@@ -15,7 +15,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 public class VNPayService implements PaymentGatewayService {
@@ -27,8 +29,6 @@ public class VNPayService implements PaymentGatewayService {
     private final String payUrl;
     private final String returnUrl;
 
-    // Sử dụng Constructor Injection kèm giá trị mặc định tránh Crash App khi thiếu
-    // properties
     public VNPayService(
             @Value("${vnpay.tmn-code:}") String tmnCode,
             @Value("${vnpay.hash-secret:}") String hashSecret,
@@ -41,8 +41,7 @@ public class VNPayService implements PaymentGatewayService {
         this.returnUrl = returnUrl;
 
         if (tmnCode.isBlank() || hashSecret.isBlank()) {
-            log.warn(
-                    "⚠️ [VNPayService] Chưa cấu hình vnpay.tmn-code hoặc vnpay.hash-secret trong application.properties!");
+            log.warn("⚠️ [VNPayService] Chưa cấu hình vnpay.tmn-code hoặc vnpay.hash-secret trong application.properties!");
         } else {
             log.info("✅ [VNPayService] Khởi tạo thành công.");
         }
@@ -56,8 +55,7 @@ public class VNPayService implements PaymentGatewayService {
     @Override
     public String createPaymentUrl(Invoice invoice, String clientIp) throws Exception {
         if (tmnCode.isBlank() || hashSecret.isBlank()) {
-            throw new IllegalStateException(
-                    "Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
+            throw new IllegalStateException("Cấu hình VNPay chưa hoàn tất. Vui lòng kiểm tra lại application.properties");
         }
 
         BigDecimal totalAmount = invoice.getTotalAmount();
@@ -172,7 +170,6 @@ public class VNPayService implements PaymentGatewayService {
         byte[] bytes = hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
-            // SỬA: Dùng %02X (IN HOA) đúng chuẩn yêu cầu mã hóa chữ ký của VNPay
             sb.append(String.format("%02X", b));
         }
         return sb.toString();

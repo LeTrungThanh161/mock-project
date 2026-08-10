@@ -53,7 +53,7 @@ export function Infrastructure() {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [floors, setFloors] = useState<number[]>([]);
+  const [, setFloors] = useState<number[]>([]);
 
   // ── Filter states ──
   const [buildingFilterGender, setBuildingFilterGender] = useState(''); // '', 'Male', 'Female', 'Mixed'

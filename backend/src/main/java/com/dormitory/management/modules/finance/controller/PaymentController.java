@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.payos.type.Webhook;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -102,15 +101,12 @@ public class PaymentController {
         return ResponseEntity.ok(invoice);
     }
 
-/**
- * PayOS webhook — Payload JSON từ PayOS gửi sang chứa signature & data.
- * Dùng type Webhook của SDK PayOS thay vì WebhookData hay Map.
- */
+    /**
+     * PayOS webhook — Payload JSON từ PayOS gửi sang chứa signature & data.
+     * Dùng type Webhook của SDK PayOS thay vì WebhookData hay Map.
+     */
 @PostMapping("/callback/payos/webhook")
-public ResponseEntity<Map<String, Object>> payosWebhook(
-        @RequestBody Webhook webhookBody) { // 👈 Sửa WebhookData -> Webhook
-
-    // Truyền webhookBody (kiểu Webhook) vào Service
+public ResponseEntity<Map<String, Object>> payosWebhook(@RequestBody Object webhookBody) {
     PaymentCallbackResult result = invoicePaymentService.handlePayOSWebhook(payOSService, webhookBody);
 
     Map<String, Object> response = new LinkedHashMap<>();

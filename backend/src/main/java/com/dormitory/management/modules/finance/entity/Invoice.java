@@ -2,6 +2,7 @@ package com.dormitory.management.modules.finance.entity;
 
 import com.dormitory.management.constants.PaymentStatus;
 import com.dormitory.management.modules.auth.entity.Staff;
+import com.dormitory.management.modules.contract.entity.Contract;
 import com.dormitory.management.modules.infrastructure.entity.Building;
 import com.dormitory.management.modules.infrastructure.entity.Room;
 import jakarta.persistence.*;
@@ -85,6 +86,13 @@ public class Invoice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "generatedByStaffId")
     private Staff generatedByStaff;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contractId")
+    private Contract contract;
+
+    @Column(length = 30)
+    private String invoiceType;
 
     // ==========================================
     // 🚀 BỔ SUNG ĐỂ TÍCH HỢP CỔNG THANH TOÁN

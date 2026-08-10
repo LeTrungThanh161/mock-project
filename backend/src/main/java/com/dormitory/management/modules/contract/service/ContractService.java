@@ -173,11 +173,11 @@ public class ContractService {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusMonths(6))
                 .deposit(room.getPrice())
-                .status(ContractStatus.Active)
+                .status(ContractStatus.Inactive)
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        contractRepository.save(contract);
+        contract = contractRepository.save(contract);
 
         room.setCurrentOccupancy((byte) (room.getCurrentOccupancy() + 1));
         if (room.getCurrentOccupancy() >= room.getMaxCapacity()) {
@@ -185,20 +185,8 @@ public class ContractService {
         }
         roomRepository.save(room);
 
-        Invoice invoice = Invoice.builder()
-                .room(room)
-                .building(room.getBuilding())
-                .billingMonth(LocalDate.now().withDayOfMonth(1))
-                .roomFee(room.getPrice())
-                .electricityFee(BigDecimal.ZERO)
-                .waterFee(BigDecimal.ZERO)
-                .internetFee(BigDecimal.ZERO)
-                .dueDate(LocalDate.now().plusDays(7))
-                .paymentStatus(PaymentStatus.Unpaid)
-                .build();
-
-        Invoice savedInvoice = invoiceRepository.save(invoice);
-        String paymentUrl = invoicePaymentService.createPaymentUrl(savedInvoice.getInvoiceId(), PaymentGateway.VNPAY, "127.0.0.1");
+        Invoice savedInvoice = invoicePaymentService.createDepositInvoiceForContract(contract);
+        String paymentUrl = invoicePaymentService.createPaymentUrl(savedInvoice.getInvoiceId(), PaymentGateway.PAYOS, "127.0.0.1");
 
         return RegistrationResult.builder()
                 .message("Đăng ký phòng và tạo hợp đồng thành công.")

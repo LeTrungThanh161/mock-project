@@ -60,6 +60,11 @@ export const registerRoom = async (roomId: number) => {
   return response.data;
 };
 
+export const createPayment = async (invoiceId: number, gateway: string) => {
+  const response = await api.post(`/payments/${invoiceId}/create?gateway=${gateway}`);
+  return response.data;
+};
+
 export const getMyContracts = async () => {
   const response = await api.get('/contracts/my');
   return response.data;
@@ -120,6 +125,7 @@ export const resetStudentPassword = async (accountId: number) => {
   return response.data;
 };
 
+
 export const toggleStudentStatus = async (accountId: number) => {
   const response = await api.post(`/admin/students/${accountId}/toggle-status`);
   return response.data;
@@ -175,4 +181,11 @@ export const updateRoomType = async (id: number, data: { typeName: string; defau
   return response.data;
 };
 
+export const exportInvoicesForBuilding = async (buildingId: number, billingMonth: string) => {
+  // billingMonth dạng: '2026-08-01'
+  const response = await api.post('/utilities/invoices/export', null, {
+    params: { buildingId, billingMonth },
+  });
+  return response.data;
+};
 export default api;

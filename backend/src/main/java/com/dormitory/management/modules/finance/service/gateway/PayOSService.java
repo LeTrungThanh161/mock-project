@@ -3,33 +3,23 @@ package com.dormitory.management.modules.finance.service.gateway;
 import com.dormitory.management.constants.PaymentGateway;
 import com.dormitory.management.modules.finance.dto.PaymentCallbackResult;
 import com.dormitory.management.modules.finance.entity.Invoice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
-import vn.payos.type.CheckoutResponseData;
-import vn.payos.type.ItemData;
-import vn.payos.type.PaymentData;
-import vn.payos.type.WebhookData;
-import vn.payos.type.Webhook;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
+import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
+import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
+
+import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-/**
- * Tài liệu tham khảo: https://payos.vn/docs/
- *
- * ⚠️ CẦN THÊM DEPENDENCY vào pom.xml:
- *   <dependency>
- *       <groupId>vn.payos</groupId>
- *       <artifactId>payos-java</artifactId>
- *       <version>2.0.1</version>  <!-- kiểm tra version mới nhất trên Maven Central -->
- *   </dependency>
- *
- * ⚠️ CẦN CẤU HÌNH trong application.properties:
- *   payos.client-id, payos.api-key, payos.checksum-key, payos.return-url, payos.cancel-url
- */
+
 @Service
 public class PayOSService implements PaymentGatewayService {
+
     private static final Logger log = LoggerFactory.getLogger(PayOSService.class);
+
     private final PayOS payOS;
     private final String returnUrl;
     private final String cancelUrl;
@@ -38,27 +28,26 @@ public class PayOSService implements PaymentGatewayService {
             @Value("${payos.client-id}") String clientId,
             @Value("${payos.api-key}") String apiKey,
             @Value("${payos.checksum-key}") String checksumKey,
-            @Value("${payos.return-url:http://localhost:5173/student-invoices}") String returnUrl,
-            @Value("${payos.cancel-url:http://localhost:5173/student-invoices}") String cancelUrl) {
-       PayOS tempPayOS = null;
+            @Value("${payos.return-url:https://5sptsgxl-5173.asse.devtunnels.ms/invoices}") String returnUrl,
+            @Value("${payos.cancel-url:https://5sptsgxl-5173.asse.devtunnels.ms/invoices") String cancelUrl) {
 
+        PayOS tempPayOS = null;
         try {
-            if (clientId != null && !clientId.isBlank() && apiKey != null && !apiKey.isBlank()) {
+            if (clientId != null && !clientId.isBlank()
+                    && apiKey != null && !apiKey.isBlank()
+                    && checksumKey != null && !checksumKey.isBlank()) {
                 tempPayOS = new PayOS(clientId.trim(), apiKey.trim(), checksumKey.trim());
-                log.info("PayOSService được khởi tạo thành công");
+                log.info("PayOSService (v2.0.1) khởi tạo thành công");
             } else {
-                log.warn("PayOS credentials không hợp lệ hoặc bị thiếu");
+                log.warn("PayOS credentials thiếu hoặc rỗng");
             }
         } catch (Exception e) {
             log.error("Khởi tạo PayOS thất bại", e);
-            tempPayOS = null;
         }
 
-        // Gán duy nhất 1 lần cho các biến final ở đây
         this.payOS = tempPayOS;
         this.returnUrl = returnUrl;
         this.cancelUrl = cancelUrl;
-    
     }
 
     @Override
@@ -68,62 +57,74 @@ public class PayOSService implements PaymentGatewayService {
 
     @Override
     public String createPaymentUrl(Invoice invoice, String clientIp) throws Exception {
-        // PayOS yêu cầu description tối đa 25 ký tự
-        String description = "Thanh toan " + invoice.getPaymentCounterpartCode();
+        if (payOS == null) {
+            throw new IllegalStateException("PayOS chưa được khởi tạo. Kiểm tra client-id / api-key / checksum-key");
+        }
+
+        String description = "Thanh toan " + (invoice.getPaymentCounterpartCode() != null
+                ? invoice.getPaymentCounterpartCode()
+                : ("HD" + invoice.getInvoiceId()));
         if (description.length() > 25) {
             description = description.substring(0, 25);
         }
 
-        ItemData item = ItemData.builder()
-                .name("Hoa don phong " + invoice.getRoom().getRoomNumber())
+        long amount = invoice.getTotalAmount()
+                .setScale(0, java.math.RoundingMode.HALF_UP)
+                .longValueExact();
+
+        long orderCode = invoice.getOrderCode() != null
+                ? invoice.getOrderCode()
+                : (System.currentTimeMillis() / 1000);
+
+        log.info("========== PAYOS REQUEST (SDK 2.0.1) ==========");
+        log.info("orderCode   = {}", orderCode);
+        log.info("amount      = {}", amount);
+        log.info("description = {}", description);
+        log.info("returnUrl   = {}", returnUrl);
+        log.info("cancelUrl   = {}", cancelUrl);
+        log.info("==============================================");
+
+        PaymentLinkItem item = PaymentLinkItem.builder()
+                .name("Hoa don phong " + (invoice.getRoom() != null ? invoice.getRoom().getRoomNumber() : invoice.getInvoiceId()))
                 .quantity(1)
-                .price(invoice.getTotalAmount().intValue())
+                .price(amount)
                 .build();
 
-        PaymentData paymentData = PaymentData.builder()
-                .orderCode(invoice.getOrderCode())
-                .amount(invoice.getTotalAmount().intValue())
+        CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
+                .orderCode(orderCode)
+                .amount(amount)
                 .description(description)
-                .item(item)
                 .returnUrl(returnUrl)
                 .cancelUrl(cancelUrl)
+                .items(List.of(item))
                 .build();
 
-        CheckoutResponseData response = payOS.createPaymentLink(paymentData);
+        CreatePaymentLinkResponse response = payOS.paymentRequests().create(paymentData);
+        log.info("PayOS tạo link thành công: {}", response.getCheckoutUrl());
         return response.getCheckoutUrl();
     }
 
-    /**
-     * PayOS webhook gửi JSON có cấu trúc {code, desc, success, data:{...}, signature}.
-     * Ở Controller, mình sẽ parse riêng bằng WebhookData của SDK thay vì Map<String,String> phẳng
-     * (xem method verifyWebhook bên dưới) — verifyCallback() ở đây chỉ giữ để khớp interface chung,
-     * KHÔNG dùng cho PayOS trong thực tế.
-     */
     @Override
     public PaymentCallbackResult verifyCallback(Map<String, String> params) {
         throw new UnsupportedOperationException(
-                "PayOS dùng verifyWebhook(WebhookData) thay vì verifyCallback(Map) do khác cấu trúc payload. " +
-                        "Gọi verifyWebhook() từ Controller.");
+                "PayOS dùng verifyWebhook() thay vì verifyCallback(Map). Gọi từ Controller.");
     }
 
-    /**
-     * Dùng riêng cho PayOS vì payload webhook là JSON lồng nhau, không phải map phẳng như VNPay/MoMo.
-     * SDK tự verify chữ ký (throw exception nếu sai) rồi mới trả object đã xác thực.
-     */
-    public PaymentCallbackResult verifyWebhook(Webhook webhookBody) {
+    public PaymentCallbackResult verifyWebhook(Object webhookBody) {
         try {
-            WebhookData verified = payOS.verifyPaymentWebhookData(webhookBody);
+            var verified = payOS.webhooks().verify(webhookBody);
 
-            boolean success = "00".equals(verified.getCode());
+            boolean success = "00".equals(String.valueOf(verified.getCode()));
 
             return PaymentCallbackResult.builder()
-                    .signatureValid(true) // verifyPaymentWebhookData throw exception nếu chữ ký sai
+                    .signatureValid(true)
                     .success(success)
                     .orderCode(verified.getOrderCode())
                     .transactionRef(verified.getReference())
                     .message("PayOS code: " + verified.getCode())
                     .build();
         } catch (Exception e) {
+            log.error("Verify webhook PayOS thất bại", e);
             return PaymentCallbackResult.builder()
                     .signatureValid(false)
                     .success(false)

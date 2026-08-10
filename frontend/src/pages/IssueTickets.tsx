@@ -85,18 +85,6 @@ export const IssueTickets = () => {
     }
   };
 
-  const getPriorityText = (priority: string) => {
-    if (priority === 'High') return 'Khẩn cấp';
-    if (priority === 'Medium') return 'Trung bình';
-    return 'Bình thường'; // Low
-  };
-
-  const getPriorityClass = (priority: string) => {
-    if (priority === 'High') return 'danger';
-    if (priority === 'Medium') return 'warning';
-    return 'normal';
-  };
-
   const getStatusText = (status: string) => {
     if (status === 'Pending') return 'Chờ xử lý';
     if (status === 'InProgress') return 'Đang xử lý';

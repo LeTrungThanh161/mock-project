@@ -102,11 +102,7 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-commons</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>vn.payos</groupId>
-			<artifactId>payos-java</artifactId>
-			<version>1.0.3</version>
-		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -116,9 +112,9 @@
 			<artifactId>spring-data-commons</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>vn.payos</groupId>
-			<artifactId>payos-java</artifactId>
-			<version>1.0.3</version>
+    		<groupId>vn.payos</groupId>
+    		<artifactId>payos-java</artifactId>
+    		<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

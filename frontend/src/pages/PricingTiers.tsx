@@ -61,7 +61,7 @@ export const PricingTiers = () => {
     );
 
     const newFrom = formData.fromUnit ?? 0;
-    const newTo = formData.toUnit;
+    const newTo = formData.toUnit ?? null;
 
     for (const tier of sameTypeTiers) {
       const existingFrom = tier.fromUnit;
@@ -78,7 +78,7 @@ export const PricingTiers = () => {
   };
 
   const handleSave = () => {
-    if (formData.toUnit !== null && formData.fromUnit !== undefined && formData.fromUnit > formData.toUnit) {
+    if (formData.toUnit !== null && formData.toUnit !== undefined && formData.fromUnit !== undefined && formData.fromUnit > formData.toUnit) {
       alert('Giá trị "Từ" không được lớn hơn giá trị "Đến".');
       return;
     }
@@ -104,7 +104,7 @@ export const PricingTiers = () => {
     setFormData({
       utilityType: formData.utilityType, // Keep current utility type
       tierOrder: (formData.tierOrder || 1) + 1, // Suggest next tier order
-      fromUnit: (formData.toUnit !== null ? formData.toUnit + 1 : 0), // Suggest next fromUnit based on previous toUnit
+      fromUnit: (formData.toUnit !== null && formData.toUnit !== undefined ? formData.toUnit + 1 : 0), // Suggest next fromUnit based on previous toUnit
       toUnit: null,
       unitPrice: formData.unitPrice ?? 1800
     });
