@@ -37,6 +37,7 @@ public class UtilityService {
     private final PricingTierRepository pricingTierRepository;
     private final InvoiceRepository invoiceRepository;
     private final ContractRepository contractRepository;
+    private final StaffRepository staffRepository;
 
     @Transactional
     public MeterReading saveMeterReading(MeterReading reading, Integer accountId) {
