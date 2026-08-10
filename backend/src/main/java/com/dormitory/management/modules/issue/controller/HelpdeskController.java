@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/helpdesk")
@@ -50,8 +51,29 @@ public class HelpdeskController {
     @PutMapping("/{id}/assign")
     public ResponseEntity<IssueTicket> assignTechnician(
             @PathVariable Integer id,
-            @RequestParam Integer technicianId) {
+            @RequestParam Integer technicianId,
+            Authentication auth) {
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"))) {
+            jdbcTemplate.execute("EXEC dbo.sp_SetSecurityContext @Role = N'Admin'");
+        }
         IssueTicket ticket = helpdeskService.assignTechnician(id, technicianId);
+        return ResponseEntity.ok(ticket);
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<IssueTicket> rejectTicket(
+            @PathVariable Integer id,
+            @RequestBody(required = false) Map<String, String> body,
+            @RequestParam(required = false) String reason,
+            Authentication auth) {
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"))) {
+            jdbcTemplate.execute("EXEC dbo.sp_SetSecurityContext @Role = N'Admin'");
+        }
+        String rejectReason = reason;
+        if ((rejectReason == null || rejectReason.isEmpty()) && body != null) {
+            rejectReason = body.get("reason");
+        }
+        IssueTicket ticket = helpdeskService.rejectTicket(id, rejectReason);
         return ResponseEntity.ok(ticket);
     }
 

@@ -57,8 +57,23 @@ export const IssueTickets = () => {
   };
 
   const handleReject = () => {
-    alert("Chưa có API xử lý từ chối trong backend!");
-    setSelectedAssignTicket(null);
+    if (!selectedAssignTicket) return;
+    const reason = prompt("Nhập lý do từ chối (có thể để trống):");
+    if (reason === null) return;
+
+    setAssignLoading(true);
+    api.put(`/helpdesk/${selectedAssignTicket.ticketId}/reject`, { reason })
+      .then(() => {
+        alert("Từ chối đơn hỗ trợ thành công!");
+        setSelectedAssignTicket(null);
+        fetchTickets();
+      })
+      .catch(err => {
+        console.error("Lỗi từ chối đơn:", err);
+        const serverMsg = err.response?.data?.message || err.response?.data || err.message;
+        alert(`Có lỗi xảy ra khi từ chối đơn: ${typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)}`);
+      })
+      .finally(() => setAssignLoading(false));
   };
 
   const filteredTickets = tickets.filter(t =>
@@ -89,12 +104,15 @@ export const IssueTickets = () => {
     if (status === 'Pending') return 'Chờ xử lý';
     if (status === 'InProgress') return 'Đang xử lý';
     if (status === 'Completed') return 'Đã hoàn tất';
+    if (status === 'Rejected') return 'Đã từ chối';
     return status;
   };
 
   const getStatusClass = (status: string) => {
     if (status === 'Pending') return 'red';
     if (status === 'InProgress') return 'orange';
+    if (status === 'Completed') return 'blue';
+    if (status === 'Rejected') return 'gray';
     return 'blue';
   };
 

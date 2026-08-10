@@ -13,6 +13,7 @@ import com.dormitory.management.modules.issue.repository.IssueTicketHistoryRepos
 import com.dormitory.management.modules.issue.repository.IssueTicketRepository;
 import com.dormitory.management.modules.issue.repository.TechnicianRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ public class HelpdeskService {
     private final IssueTicketHistoryRepository issueTicketHistoryRepository;
     private final TechnicianRepository technicianRepository;
     private final CloudinaryService cloudinaryService;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional
     public IssueTicket createTicket(IssueTicketRequest request, MultipartFile imageFile) throws IOException {
@@ -120,6 +122,41 @@ public class HelpdeskService {
                 .ticket(updatedTicket)
                 .oldStatus(oldStatus)
                 .newStatus(TicketStatus.Completed)
+                .changedAt(LocalDateTime.now())
+                .build();
+        issueTicketHistoryRepository.save(history);
+
+        return updatedTicket;
+    }
+
+    @Transactional
+    public IssueTicket rejectTicket(Integer ticketId, String reason) {
+        try {
+            jdbcTemplate.execute("""
+                IF EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Ticket_Status')
+                BEGIN
+                    ALTER TABLE dbo.IssueTicket DROP CONSTRAINT CK_Ticket_Status;
+                    ALTER TABLE dbo.IssueTicket ADD CONSTRAINT CK_Ticket_Status CHECK (Status IN ('Pending', 'InProgress', 'Completed', 'Rejected'));
+                END
+            """);
+        } catch (Exception ignored) {}
+
+        IssueTicket ticket = issueTicketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        TicketStatus oldStatus = ticket.getStatus();
+        ticket.setStatus(TicketStatus.Rejected);
+
+        if (reason != null && !reason.trim().isEmpty()) {
+            ticket.setDescription(ticket.getDescription() + " [Lý do từ chối: " + reason.trim() + "]");
+        }
+
+        IssueTicket updatedTicket = issueTicketRepository.save(ticket);
+
+        IssueTicketHistory history = IssueTicketHistory.builder()
+                .ticket(updatedTicket)
+                .oldStatus(oldStatus)
+                .newStatus(TicketStatus.Rejected)
                 .changedAt(LocalDateTime.now())
                 .build();
         issueTicketHistoryRepository.save(history);

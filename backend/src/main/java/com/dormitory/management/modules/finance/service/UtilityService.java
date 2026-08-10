@@ -38,7 +38,6 @@ public class UtilityService {
     private final PricingTierRepository pricingTierRepository;
     private final InvoiceRepository invoiceRepository;
     private final ContractRepository contractRepository;
-    private final StaffRepository staffRepository;
 
     @Transactional
     public MeterReading saveMeterReading(MeterReading reading, Integer accountId) {
@@ -61,110 +60,110 @@ public class UtilityService {
      * @return số hóa đơn đã tạo
      */
 
-   @Transactional
-public int exportInvoicesForBuilding(Integer buildingId, LocalDate billingMonth, Integer accountId) {
-    List<Contract> contracts = contractRepository
-            .findByBuilding_BuildingIdAndStatus(buildingId, ContractStatus.Active);
+    @Transactional
+    public int exportInvoicesForBuilding(Integer buildingId, LocalDate billingMonth, Integer accountId) {
+        List<Contract> contracts = contractRepository
+                .findByBuilding_BuildingIdAndStatus(buildingId, ContractStatus.Active);
 
-    if (contracts.isEmpty()) {
-        log.info("Tòa {} không có Contract Active nào", buildingId);
-        return 0;
-    }
-
-    List<MeterReading> readings = meterReadingRepository
-            .findByBuildingBuildingIdAndBillingMonth(buildingId, billingMonth);
-
-    Map<Integer, MeterReading> readingByRoom = readings.stream()
-            .collect(Collectors.toMap(
-                    r -> r.getRoom().getRoomId(),
-                    r -> r,
-                    (a, b) -> a
-            ));
-
-    // === SỬA CHỖ NÀY ===
-    Staff staff = null;
-    if (accountId != null) {
-        staff = staffRepository.findByAccountId(accountId).orElse(null);
-        if (staff == null) {
-            log.warn("Không tìm thấy Staff với AccountId = {} → generatedByStaff = null", accountId);
-        }
-    }
-
-    List<PricingTier> electricTiers = pricingTierRepository
-            .findByUtilityTypeOrderByTierOrderAsc(UtilityType.Electric);
-    List<PricingTier> waterTiers = pricingTierRepository
-            .findByUtilityTypeOrderByTierOrderAsc(UtilityType.Water);
-
-    int created = 0;
-
-    for (Contract contract : contracts) {
-        Room room = contract.getRoom();
-        if (room == null || room.getRoomId() == null) {
-            continue;
+        if (contracts.isEmpty()) {
+            log.info("Tòa {} không có Contract Active nào", buildingId);
+            return 0;
         }
 
-        boolean exists = invoiceRepository
-                .existsByContract_ContractIdAndInvoiceTypeAndBillingMonth(
-                        contract.getContractId(), "ROOM_FEE", billingMonth);
-        if (exists) {
-            log.debug("Contract {} đã có hóa đơn ROOM_FEE tháng {} → bỏ qua",
-                    contract.getContractId(), billingMonth);
-            continue;
+        List<MeterReading> readings = meterReadingRepository
+                .findByBuildingBuildingIdAndBillingMonth(buildingId, billingMonth);
+
+        Map<Integer, MeterReading> readingByRoom = readings.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getRoom().getRoomId(),
+                        r -> r,
+                        (a, b) -> a));
+
+        // === SỬA CHỖ NÀY ===
+        Staff staff = null;
+        if (accountId != null) {
+            staff = staffRepository.findByAccountId(accountId).orElse(null);
+            if (staff == null) {
+                log.warn("Không tìm thấy Staff với AccountId = {} → generatedByStaff = null", accountId);
+            }
         }
 
-        MeterReading reading = readingByRoom.get(room.getRoomId());
-        if (reading == null) {
-            log.warn("Phòng {} chưa có chỉ số điện nước tháng {} → bỏ qua",
+        List<PricingTier> electricTiers = pricingTierRepository
+                .findByUtilityTypeOrderByTierOrderAsc(UtilityType.Electric);
+        List<PricingTier> waterTiers = pricingTierRepository
+                .findByUtilityTypeOrderByTierOrderAsc(UtilityType.Water);
+
+        int created = 0;
+
+        for (Contract contract : contracts) {
+            Room room = contract.getRoom();
+            if (room == null || room.getRoomId() == null) {
+                continue;
+            }
+
+            boolean exists = invoiceRepository
+                    .existsByContract_ContractIdAndInvoiceTypeAndBillingMonth(
+                            contract.getContractId(), "ROOM_FEE", billingMonth);
+            if (exists) {
+                log.debug("Contract {} đã có hóa đơn ROOM_FEE tháng {} → bỏ qua",
+                        contract.getContractId(), billingMonth);
+                continue;
+            }
+
+            MeterReading reading = readingByRoom.get(room.getRoomId());
+            if (reading == null) {
+                log.warn("Phòng {} chưa có chỉ số điện nước tháng {} → bỏ qua",
+                        room.getRoomNumber(), billingMonth);
+                continue;
+            }
+
+            int occupancy = (room.getCurrentOccupancy() != null && room.getCurrentOccupancy() > 0)
+                    ? room.getCurrentOccupancy()
+                    : 1;
+
+            BigDecimal electricUsage = safeSubtract(reading.getElectricEnd(), reading.getElectricStart());
+            BigDecimal waterUsage = safeSubtract(reading.getWaterEnd(), reading.getWaterStart());
+
+            BigDecimal electricFeeRoom = calculateProgressiveFee(electricUsage, electricTiers);
+            BigDecimal waterFeeRoom = calculateProgressiveFee(waterUsage, waterTiers);
+
+            BigDecimal electricFee = electricFeeRoom
+                    .divide(BigDecimal.valueOf(occupancy), 0, RoundingMode.HALF_UP);
+            BigDecimal waterFee = waterFeeRoom
+                    .divide(BigDecimal.valueOf(occupancy), 0, RoundingMode.HALF_UP);
+
+            BigDecimal roomFee = room.getPrice() != null ? room.getPrice() : BigDecimal.ZERO;
+
+            Invoice invoice = Invoice.builder()
+                    .room(room)
+                    .building(room.getBuilding())
+                    .contract(contract)
+                    .billingMonth(billingMonth)
+                    .roomFee(roomFee)
+                    .electricityFee(electricFee)
+                    .waterFee(waterFee)
+                    .internetFee(BigDecimal.ZERO)
+                    .dueDate(billingMonth.plusMonths(1).withDayOfMonth(10))
+                    .paymentStatus(PaymentStatus.Unpaid)
+                    .invoiceType("ROOM_FEE")
+                    .generatedByStaff(staff) // dùng Staff đã map từ AccountId
+                    .build();
+
+            invoice = invoiceRepository.save(invoice);
+            invoice.setOrderCode(generateOrderCode(invoice.getInvoiceId()));
+            invoice.setPaymentCounterpartCode("KTX_PHONG_" + invoice.getInvoiceId());
+            invoiceRepository.save(invoice);
+
+            created++;
+            log.info("Đã tạo hóa đơn ROOM_FEE id={} cho Contract {}, phòng {}, tháng {}",
+                    invoice.getInvoiceId(), contract.getContractId(),
                     room.getRoomNumber(), billingMonth);
-            continue;
         }
 
-        int occupancy = (room.getCurrentOccupancy() != null && room.getCurrentOccupancy() > 0)
-                ? room.getCurrentOccupancy()
-                : 1;
-
-        BigDecimal electricUsage = safeSubtract(reading.getElectricEnd(), reading.getElectricStart());
-        BigDecimal waterUsage = safeSubtract(reading.getWaterEnd(), reading.getWaterStart());
-
-        BigDecimal electricFeeRoom = calculateProgressiveFee(electricUsage, electricTiers);
-        BigDecimal waterFeeRoom = calculateProgressiveFee(waterUsage, waterTiers);
-
-        BigDecimal electricFee = electricFeeRoom
-                .divide(BigDecimal.valueOf(occupancy), 0, RoundingMode.HALF_UP);
-        BigDecimal waterFee = waterFeeRoom
-                .divide(BigDecimal.valueOf(occupancy), 0, RoundingMode.HALF_UP);
-
-        BigDecimal roomFee = room.getPrice() != null ? room.getPrice() : BigDecimal.ZERO;
-
-        Invoice invoice = Invoice.builder()
-                .room(room)
-                .building(room.getBuilding())
-                .contract(contract)
-                .billingMonth(billingMonth)
-                .roomFee(roomFee)
-                .electricityFee(electricFee)
-                .waterFee(waterFee)
-                .internetFee(BigDecimal.ZERO)
-                .dueDate(billingMonth.plusMonths(1).withDayOfMonth(10))
-                .paymentStatus(PaymentStatus.Unpaid)
-                .invoiceType("ROOM_FEE")
-                .generatedByStaff(staff)          // dùng Staff đã map từ AccountId
-                .build();
-
-        invoice = invoiceRepository.save(invoice);
-        invoice.setOrderCode(generateOrderCode(invoice.getInvoiceId()));
-        invoice.setPaymentCounterpartCode("KTX_PHONG_" + invoice.getInvoiceId());
-        invoiceRepository.save(invoice);
-
-        created++;
-        log.info("Đã tạo hóa đơn ROOM_FEE id={} cho Contract {}, phòng {}, tháng {}",
-                invoice.getInvoiceId(), contract.getContractId(),
-                room.getRoomNumber(), billingMonth);
+        log.info("Xuất hóa đơn tòa {} tháng {}: tạo {} hóa đơn", buildingId, billingMonth, created);
+        return created;
     }
 
-    log.info("Xuất hóa đơn tòa {} tháng {}: tạo {} hóa đơn", buildingId, billingMonth, created);
-    return created;
-}
     private BigDecimal safeSubtract(BigDecimal end, BigDecimal start) {
         if (end == null || start == null) {
             return BigDecimal.ZERO;
