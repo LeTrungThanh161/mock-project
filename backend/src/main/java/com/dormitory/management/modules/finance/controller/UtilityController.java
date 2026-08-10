@@ -20,8 +20,9 @@ public class UtilityController {
     private final UtilityService utilityService;
 
     @PostMapping("/meter-readings")
-    public ResponseEntity<MeterReading> saveMeterReading(@RequestBody MeterReading reading) {
-        MeterReading savedReading = utilityService.saveMeterReading(reading);
+    public ResponseEntity<MeterReading> saveMeterReading(@RequestBody MeterReading reading, HttpServletRequest request) {
+        Integer accountId = (Integer) request.getAttribute("accountId");
+        MeterReading savedReading = utilityService.saveMeterReading(reading, accountId);
         return ResponseEntity.ok(savedReading);
     }
 

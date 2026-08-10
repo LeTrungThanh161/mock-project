@@ -21,6 +21,8 @@ public class MeterReadingResponse {
     private BigDecimal waterStart;
     private BigDecimal waterEnd;
     private Boolean isFirstMonth;
+    private Integer recordedByStaffId;
+    private String recordedByStaffName;
 
     @Data
     @Builder

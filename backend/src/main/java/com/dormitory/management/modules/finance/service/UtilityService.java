@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,9 +38,16 @@ public class UtilityService {
     private final PricingTierRepository pricingTierRepository;
     private final InvoiceRepository invoiceRepository;
     private final ContractRepository contractRepository;
+    private final StaffRepository staffRepository;
 
     @Transactional
-    public MeterReading saveMeterReading(MeterReading reading) {
+    public MeterReading saveMeterReading(MeterReading reading, Integer accountId) {
+        if (accountId != null) {
+            staffRepository.findByAccountId(accountId).ifPresent(reading::setRecordedByStaff);
+        }
+        if (reading.getRecordedAt() == null) {
+            reading.setRecordedAt(LocalDateTime.now());
+        }
         return meterReadingRepository.save(reading);
     }
 
