@@ -69,4 +69,9 @@ public class Contract {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    /**
+     * Ngày trả phòng thực tế
+     */
+    private LocalDate actualCheckoutDate;
 }

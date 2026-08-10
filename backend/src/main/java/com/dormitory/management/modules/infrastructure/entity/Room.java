@@ -49,7 +49,7 @@ public class Room {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = com.dormitory.management.constants.RoomStatusConverter.class)
     @Column(nullable = false, length = 20)
     private RoomStatus status;
 }

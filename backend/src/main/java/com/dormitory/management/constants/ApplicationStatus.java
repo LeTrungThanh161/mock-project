@@ -1,5 +1,5 @@
 package com.dormitory.management.constants;
 
 public enum ApplicationStatus {
-    PENDING, APPROVED, REJECTED
+    Pending, Approved, Rejected
 }
