@@ -58,7 +58,7 @@ public class MeterReading {
     @JoinColumn(name = "recordedByStaffId")
     private Staff recordedByStaff;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime recordedAt;
 
     @Transient
