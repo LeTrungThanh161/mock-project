@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  User, FileText, FileSignature, Clock,
-  LayoutDashboard, Building2, Users, ClipboardList,
+  User, FileText, FileSignature,
+  LayoutDashboard, Building2, Users,
   Wrench, Receipt, LogOut, ChevronRight, Zap, Settings, HardHat, Menu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

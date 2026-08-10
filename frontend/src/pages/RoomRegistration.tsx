@@ -77,7 +77,7 @@ export const RoomRegistration = () => {
 
   const handleSelectRoom = (room: RoomDTO) => {
     if (hasExistingContract) {
-      alert('Bạn đã có hợp đồng');
+      alert('Bạn đã có hợp đồng đang hoạt động. Vui lòng chờ hợp đồng cũ kết thúc hoặc tạo hợp đồng mới sau khi kết thúc.');
       return;
     }
     setSelectedRoom(room);

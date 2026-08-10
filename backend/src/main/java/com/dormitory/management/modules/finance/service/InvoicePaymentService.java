@@ -7,6 +7,7 @@ import com.dormitory.management.constants.UtilityType;
 import com.dormitory.management.modules.auth.entity.Staff;
 import com.dormitory.management.modules.contract.entity.Contract;
 import com.dormitory.management.modules.contract.repository.ContractRepository;
+import com.dormitory.management.modules.finance.dto.InvoiceResponse;
 import com.dormitory.management.modules.infrastructure.entity.Room;
 import com.dormitory.management.modules.infrastructure.repository.RoomRepository;
 import com.dormitory.management.modules.finance.dto.PaymentCallbackResult;
@@ -20,7 +21,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -28,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Service trung tâm xử lý nghiệp vụ hóa đơn & thanh toán ký túc xá.
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class InvoicePaymentService {
-
+    private static final Logger log = LoggerFactory.getLogger(InvoicePaymentService.class);
     private final InvoiceRepository invoiceRepository;
     private final PricingTierRepository pricingTierRepository;
     private final ContractRepository contractRepository;
@@ -58,9 +59,12 @@ public class InvoicePaymentService {
 
     @PostConstruct
     void initGatewayMap() {
-        gatewayMap = gatewayServiceList.stream()
-                .collect(Collectors.toMap(PaymentGatewayService::getGateway, g -> g,
-                        (a, b) -> a, () -> new EnumMap<>(PaymentGateway.class)));
+        gatewayMap = new EnumMap<>(PaymentGateway.class);
+        for (PaymentGatewayService service : gatewayServiceList) {
+            if (service != null && service.getGateway() != null) {
+                gatewayMap.putIfAbsent(service.getGateway(), service);
+            }
+        }
     }
 
     // ============================================================
@@ -149,28 +153,31 @@ public class InvoicePaymentService {
     // ============================================================
     // 3. TẠO LINK THANH TOÁN — CHỌN CỔNG LINH HOẠT
     // ============================================================
-    @Transactional
-    public String createPaymentUrl(Integer invoiceId, PaymentGateway gateway, String clientIp) throws Exception {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn: " + invoiceId));
+ @Transactional
+public String createPaymentUrl(Integer invoiceId, PaymentGateway gateway, String clientIp) throws Exception {
+    Invoice invoice = invoiceRepository.findById(invoiceId)
+            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn: " + invoiceId));
 
-        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
-            throw new IllegalStateException("Hóa đơn này đã được thanh toán");
-        }
-
-        PaymentGatewayService service = gatewayMap.get(gateway);
-        if (service == null) {
-            throw new IllegalArgumentException("Cổng thanh toán không được hỗ trợ: " + gateway);
-        }
-
-        String url = service.createPaymentUrl(invoice, clientIp);
-
-        invoice.setPaymentMethod(gateway.name());
-        invoice.setPaymentCheckoutUrl(url);
-        invoiceRepository.save(invoice);
-
-        return url;
+    if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
+        throw new IllegalStateException("Hóa đơn này đã được thanh toán");
     }
+// Luôn sinh orderCode mới trước khi tạo link
+invoice.setOrderCode(generateOrderCode(invoice.getInvoiceId()));
+invoice = invoiceRepository.save(invoice);
+
+    PaymentGatewayService service = gatewayMap.get(gateway);
+    if (service == null) {
+        throw new IllegalArgumentException("Cổng thanh toán không được hỗ trợ: " + gateway);
+    }
+
+    String url = service.createPaymentUrl(invoice, clientIp);
+
+    invoice.setPaymentMethod(gateway.name());
+    invoice.setPaymentCheckoutUrl(url);
+    invoiceRepository.save(invoice);
+
+    return url;
+}
 
     // ============================================================
     // 4. XỬ LÝ CALLBACK (RETURN URL / IPN) — CÓ VERIFY CHỮ KÝ + IDEMPOTENT
@@ -209,6 +216,7 @@ public class InvoicePaymentService {
             invoice.setPaymentStatus(PaymentStatus.Paid);
             invoice.setTransactionRef(result.getTransactionRef());
             invoice.setPaymentDate(LocalDate.now());
+            activateRelatedContract(invoice);
         } else {
             invoice.setPaymentCheckoutUrl(null);
             rollbackPendingRegistration(invoice);
@@ -221,38 +229,54 @@ public class InvoicePaymentService {
     // ============================================================
     // 4b. XỬ LÝ WEBHOOK RIÊNG CHO PAYOS (payload JSON khác cấu trúc)
     // ============================================================
-    @Transactional
-    public PaymentCallbackResult handlePayOSWebhook(
-            com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService,
-            vn.payos.type.Webhook webhookBody) {
-        PaymentCallbackResult result = payOSService.verifyWebhook(webhookBody);
+  @Transactional
+public PaymentCallbackResult handlePayOSWebhook(
+        com.dormitory.management.modules.finance.service.gateway.PayOSService payOSService,
+        Object webhookBody) {
 
-        if (!result.isSignatureValid() || result.getOrderCode() == null) {
-            return result;
-        }
+    log.info("=== NHẬN WEBHOOK PAYOS ===");
+    log.info("Body: {}", webhookBody);
 
-        Invoice invoice = invoiceRepository.findByOrderCode(result.getOrderCode()).orElse(null);
-        if (invoice == null) {
-            return result.toBuilder()
-                    .message("Không tìm thấy hóa đơn ứng với orderCode: " + result.getOrderCode())
-                    .build();
-        }
+    PaymentCallbackResult result = payOSService.verifyWebhook(webhookBody);
 
-        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
-            return result; // idempotent
-        }
+    log.info("signatureValid={}, success={}, orderCode={}, message={}",
+            result.isSignatureValid(), result.isSuccess(), result.getOrderCode(), result.getMessage());
 
-        if (result.isSuccess()) {
-            invoice.setPaymentStatus(PaymentStatus.Paid);
-            invoice.setTransactionRef(result.getTransactionRef());
-            invoice.setPaymentDate(LocalDate.now());
-        } else {
-            invoice.setPaymentCheckoutUrl(null);
-        }
-
-        invoiceRepository.save(invoice);
+    if (!result.isSignatureValid() || result.getOrderCode() == null) {
+        log.warn("Webhook không hợp lệ hoặc thiếu orderCode → bỏ qua");
         return result;
     }
+
+    Invoice invoice = invoiceRepository.findByOrderCode(result.getOrderCode()).orElse(null);
+    if (invoice == null) {
+        log.warn("Không tìm thấy Invoice với orderCode={}", result.getOrderCode());
+        return result.toBuilder()
+                .message("Không tìm thấy hóa đơn ứng với orderCode: " + result.getOrderCode())
+                .build();
+    }
+
+    log.info("Tìm thấy Invoice id={}, status hiện tại={}", invoice.getInvoiceId(), invoice.getPaymentStatus());
+
+    if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
+        log.info("Invoice đã Paid rồi → idempotent");
+        return result;
+    }
+
+    if (result.isSuccess()) {
+        invoice.setPaymentStatus(PaymentStatus.Paid);
+        invoice.setTransactionRef(result.getTransactionRef());
+        invoice.setPaymentDate(LocalDate.now());
+        invoice.setPaymentMethod(PaymentGateway.PAYOS.name()); // thêm dòng này
+        activateRelatedContract(invoice);
+        log.info("Đã cập nhật Invoice → PAID và kích hoạt Contract");
+    } else {
+        invoice.setPaymentCheckoutUrl(null);
+        log.info("Thanh toán thất bại → clear checkoutUrl");
+    }
+
+    invoiceRepository.save(invoice);
+    return result;
+}
 
     private void rollbackPendingRegistration(Invoice invoice) {
         if (invoice.getRoom() == null || invoice.getRoom().getRoomId() == null) {
@@ -293,7 +317,127 @@ public class InvoicePaymentService {
         invoice.setTransactionRef(bankTransactionRef);
         invoice.setPaymentStatus(PaymentStatus.Paid);
         invoice.setPaymentDate(LocalDate.now());
+        activateRelatedContract(invoice);
 
         return invoiceRepository.save(invoice);
     }
+
+   @Transactional
+public Invoice createDepositInvoiceForContract(Contract contract) {
+    BigDecimal depositAmount = contract.getRoom() != null && contract.getRoom().getPrice() != null
+            ? contract.getRoom().getPrice()
+            : BigDecimal.ZERO;
+
+    Invoice invoice = Invoice.builder()
+            .room(contract.getRoom())
+            .building(contract.getBuilding())
+            .billingMonth(LocalDate.now().withDayOfMonth(1))
+            .roomFee(depositAmount)                    // ← tiền cọc = giá phòng
+            .electricityFee(BigDecimal.ZERO)
+            .waterFee(BigDecimal.ZERO)
+            .internetFee(BigDecimal.ZERO)
+            .dueDate(LocalDate.now().plusDays(5))
+            .paymentStatus(PaymentStatus.Unpaid)
+            .contract(contract)
+            .invoiceType("DEPOSIT")
+            .build();
+
+    invoice = invoiceRepository.save(invoice);
+    invoice.setOrderCode(generateOrderCode(invoice.getInvoiceId()));
+    invoice.setPaymentCounterpartCode("KTX_COC_" + invoice.getInvoiceId());
+    return invoiceRepository.save(invoice);
+}
+
+    @Transactional
+    public Invoice createMonthlyInvoiceForContract(Contract contract, LocalDate billingMonth) {
+        Invoice invoice = Invoice.builder()
+                .room(contract.getRoom())
+                .building(contract.getBuilding())
+                .billingMonth(billingMonth)
+                .roomFee(contract.getRoom().getPrice())
+                .electricityFee(BigDecimal.ZERO)
+                .waterFee(BigDecimal.ZERO)
+                .internetFee(BigDecimal.ZERO)
+                .dueDate(billingMonth.plusMonths(1).withDayOfMonth(10))
+                .paymentStatus(PaymentStatus.Unpaid)
+                .contract(contract)
+                .invoiceType("ROOM_FEE")
+                .build();
+        invoice = invoiceRepository.save(invoice);
+        invoice.setOrderCode(generateOrderCode(invoice.getInvoiceId()));
+        invoice.setPaymentCounterpartCode("KTX_PHONG_" + invoice.getInvoiceId());
+        return invoiceRepository.save(invoice);
+    }
+
+    @Transactional
+    public List<InvoiceResponse> buildInvoiceResponses(List<Invoice> invoices) {
+        return invoices.stream().map(this::buildInvoiceResponse).toList();
+    }
+
+    private InvoiceResponse buildInvoiceResponse(Invoice invoice) {
+        BigDecimal totalAmount = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal penaltyAmount = BigDecimal.ZERO;
+        Integer overdueDays = 0;
+        String statusLabel = "Chưa thanh toán";
+        boolean canPay = invoice.getPaymentStatus() != PaymentStatus.Paid;
+
+        if (invoice.getDueDate() != null && invoice.getPaymentStatus() != PaymentStatus.Paid) {
+            overdueDays = Math.max(0, LocalDate.now().compareTo(invoice.getDueDate()));
+            if (overdueDays > 0) {
+                penaltyAmount = BigDecimal.valueOf(Math.min(overdueDays, 5)).multiply(BigDecimal.valueOf(50000));
+                statusLabel = overdueDays <= 5 ? "Quá hạn" : "Đã bị chấm dứt";
+            }
+        }
+
+        if (invoice.getPaymentStatus() == PaymentStatus.Paid) {
+            statusLabel = "Đã thanh toán";
+            canPay = false;
+        }
+
+        String invoiceTypeLabel = "Hóa đơn tiền phòng";
+        if ("DEPOSIT".equals(invoice.getInvoiceType())) {
+            invoiceTypeLabel = "Hóa đơn đặt cọc";
+        }
+
+        return InvoiceResponse.builder()
+                .invoiceId(invoice.getInvoiceId())
+                .roomId(invoice.getRoom() != null ? invoice.getRoom().getRoomId() : null)
+                .roomNumber(invoice.getRoom() != null ? invoice.getRoom().getRoomNumber() : null)
+                .buildingName(invoice.getBuilding() != null ? invoice.getBuilding().getName() : null)
+                .billingMonth(invoice.getBillingMonth())
+                .roomFee(invoice.getRoomFee())
+                .electricityFee(invoice.getElectricityFee())
+                .waterFee(invoice.getWaterFee())
+                .internetFee(invoice.getInternetFee())
+                .totalAmount(totalAmount.add(penaltyAmount))
+                .dueDate(invoice.getDueDate())
+                .paymentStatus(invoice.getPaymentStatus() != null ? invoice.getPaymentStatus().name() : null)
+                .paymentMethod(invoice.getPaymentMethod())
+                .invoiceType(invoice.getInvoiceType())
+                .invoiceTypeLabel(invoiceTypeLabel)
+                .statusLabel(statusLabel)
+                .overdueDays(overdueDays)
+                .penaltyAmount(penaltyAmount)
+                .canPay(canPay)
+                .paymentCheckoutUrl(invoice.getPaymentCheckoutUrl())
+                .paymentCounterpartCode(invoice.getPaymentCounterpartCode())
+                .contractId(invoice.getContract() != null ? invoice.getContract().getContractId() : null)
+                .build();
+    }
+
+private void activateRelatedContract(Invoice invoice) {
+    if (invoice == null || invoice.getContract() == null) {
+        return;
+    }
+
+    Contract contract = invoice.getContract();
+    if (contract.getStatus() != ContractStatus.Inactive) {
+        return;
+    }
+
+    contract.setStatus(ContractStatus.Active);
+    contractRepository.save(contract);
+    log.info("Đã kích hoạt Contract id={} → Active (không tạo hóa đơn tháng)", contract.getContractId());
+}
+
 }

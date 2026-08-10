@@ -37,10 +37,11 @@ public class StudentController {
 
     @PostMapping("/contracts/register")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<?> registerRoom(
+    public ResponseEntity<String> registerRoom(
             HttpServletRequest request,
-            @RequestBody RoomRegistrationRequest registerRequest) throws Exception {
+            @RequestBody RoomRegistrationRequest registerRequest) {
         Integer accountId = (Integer) request.getAttribute("accountId");
-        return ResponseEntity.ok(studentService.registerRoom(accountId, registerRequest.getRoomId()));
+        studentService.registerRoom(accountId, registerRequest.getRoomId());
+        return ResponseEntity.ok("Đăng ký phòng và tạo hợp đồng thành công.");
     }
 }

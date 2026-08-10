@@ -227,7 +227,9 @@ public class SecurityConfig {
                                                                 "/api/temporary-absences/my", // đơn tạm vắng của mình
                                                                 "/api/students/**")
                                                 .hasRole("STUDENT")
-
+                                                .requestMatchers(
+                                                "/api/payments/callback/**"
+                                                ).permitAll()
                                                 // Đăng ký phòng
                                                 .requestMatchers(
                                                                 "/api/contracts/register")

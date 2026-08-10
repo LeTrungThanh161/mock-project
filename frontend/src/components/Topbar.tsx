@@ -1,4 +1,3 @@
-import { Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Topbar.css';
 

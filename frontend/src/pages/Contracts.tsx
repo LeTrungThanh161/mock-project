@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getMyContracts, renewMyContract, checkoutContract } from '../services/api';
 import './Contracts.css';
 

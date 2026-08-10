@@ -11,7 +11,7 @@ const Login = () => {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
+  void useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 

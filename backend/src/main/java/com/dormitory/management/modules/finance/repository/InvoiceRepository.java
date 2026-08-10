@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
-
+    List<Invoice> findByContract_ContractIdIn(List<Integer> contractIds);
     Optional<Invoice> findByOrderCode(Long orderCode);
 
     List<Invoice> findByRoom_RoomId(Integer roomId);
@@ -18,6 +18,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
     List<Invoice> findByRoom_RoomIdIn(List<Integer> roomIds);
 
     List<Invoice> findByBuilding_BuildingId(Integer buildingId);
+
+    boolean existsByContract_ContractIdAndInvoiceTypeAndBillingMonth(Integer contractId, String invoiceType, LocalDate billingMonth);
 
     /**
      * Dùng cho job nhắc nộp tiền: hóa đơn UNPAID sắp/đã đến hạn.
