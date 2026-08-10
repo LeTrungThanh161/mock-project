@@ -248,7 +248,7 @@ export function AdminContracts() {
 
 
           {/* Phòng ở / Tòa */}
-          {!isAdmin && (
+          
             <div className="filter-group">
               <label>Tìm theo Phòng / Tòa</label>
               <div className="filter-input-wrapper">
@@ -262,7 +262,7 @@ export function AdminContracts() {
                 />
               </div>
             </div>
-          )}
+          
 
 
 

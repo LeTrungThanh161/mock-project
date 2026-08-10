@@ -142,7 +142,7 @@ export const RoomRegistration = () => {
               <th>Phòng</th>
               <th>Tòa nhà</th>
               <th>Loại phòng</th>
-              <th>Giường trống</th>
+              <th>Số người đang ở</th>
               <th>Giá thuê</th>
               <th>Hành động</th>
             </tr>
@@ -190,7 +190,7 @@ export const RoomRegistration = () => {
                     <p>Giá thuê: <strong>{formatCurrency(selectedRoom.price)} / tháng</strong></p>
                   </div>
                   <div>
-                    <p>Tòa nhà: <strong>Tòa {selectedRoom.buildingName}</strong></p>
+                    <p>Tòa nhà: <strong>{selectedRoom.buildingName}</strong></p>
                     <p>Số người hiện tại: <strong>{selectedRoom.currentOccupancy} / {selectedRoom.maxCapacity} người</strong></p>
                     <p>Tiền cọc: <strong>{formatCurrency(selectedRoom.price)}</strong></p>
                   </div>

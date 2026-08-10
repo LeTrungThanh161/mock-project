@@ -238,10 +238,12 @@ export const PricingTiers = () => {
               <h3 className='text-gray'>Danh sách Bậc giá Hiện hành</h3>
               <p>Danh sách chi tiết các khung giá đang được áp dụng.</p>
             </div>
-            <div className="pt-table-actions">
+
+            {/* <div className="pt-table-actions">
               <button className="pt-icon-btn"><Filter size={18} /></button>
               <button className="pt-icon-btn"><Download size={18} /></button>
-            </div>
+            </div> */}
+
           </div>
 
           <table className="pt-table">

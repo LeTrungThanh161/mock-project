@@ -307,9 +307,9 @@ export const Invoices = () => {
                 Đã thanh toán
               </button>
             </div>
-            <button className="inv-btn-outline">
+            {/* <button className="inv-btn-outline">
               <Download size={16} /> Xuất Excel
-            </button>
+            </button> */}
           </div>
         </div>
 

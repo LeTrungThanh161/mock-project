@@ -590,7 +590,7 @@ export function Infrastructure() {
                 <th>Tòa nhà</th>
                 <th>Tầng</th>
                 <th>Loại phòng</th>
-                <th>Số người ở</th>
+                <th>Số người đang ở</th>
                 <th>Trạng thái kỹ thuật</th>
                 <th>Thao tác</th>
               </tr>
