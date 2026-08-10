@@ -2,6 +2,7 @@ package com.dormitory.management.modules.finance.controller;
 
 import com.dormitory.management.modules.finance.entity.MeterReading;
 import com.dormitory.management.modules.finance.service.UtilityService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,9 @@ public class UtilityController {
     private final UtilityService utilityService;
 
     @PostMapping("/meter-readings")
-    public ResponseEntity<MeterReading> saveMeterReading(@RequestBody MeterReading reading) {
-        MeterReading savedReading = utilityService.saveMeterReading(reading);
+    public ResponseEntity<MeterReading> saveMeterReading(@RequestBody MeterReading reading, HttpServletRequest request) {
+        Integer accountId = (Integer) request.getAttribute("accountId");
+        MeterReading savedReading = utilityService.saveMeterReading(reading, accountId);
         return ResponseEntity.ok(savedReading);
     }
 

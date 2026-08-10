@@ -1,5 +1,7 @@
 package com.dormitory.management.modules.finance.service;
 
+import com.dormitory.management.modules.auth.entity.Staff;
+import com.dormitory.management.modules.auth.repository.StaffRepository;
 import com.dormitory.management.modules.finance.dto.MeterReadingResponse;
 import com.dormitory.management.modules.finance.dto.MeterReadingBulkUpdateRequest;
 import com.dormitory.management.modules.finance.entity.MeterReading;
@@ -24,9 +26,12 @@ public class MeterReadingService {
 
     private final MeterReadingRepository meterReadingRepository;
     private final RoomRepository roomRepository;
+    private final StaffRepository staffRepository;
 
     @Transactional
-    public List<MeterReadingResponse> getOrGenerateMeterReadings(Integer buildingId, Integer floorNumber, LocalDate month) {
+    public List<MeterReadingResponse> getOrGenerateMeterReadings(Integer buildingId, Integer floorNumber, LocalDate month, Integer accountId) {
+        Staff staff = accountId != null ? staffRepository.findByAccountId(accountId).orElse(null) : null;
+
         // Fetch rooms for this building and floor
         List<Room> rooms = roomRepository.findByBuilding_BuildingId(buildingId);
         if (floorNumber != null) {
@@ -35,7 +40,6 @@ public class MeterReadingService {
 
         List<MeterReading> currentMonthReadings = meterReadingRepository.findByBuildingBuildingIdAndBillingMonth(buildingId, month);
         List<MeterReading> result = new ArrayList<>(currentMonthReadings);
-        boolean generatedNew = false;
 
         for (Room room : rooms) {
             boolean exists = currentMonthReadings.stream().anyMatch(r -> r.getRoom().getRoomId().equals(room.getRoomId()));
@@ -61,13 +65,13 @@ public class MeterReadingService {
                         .electricEnd(startElectric) // Default End = Start
                         .waterStart(startWater)
                         .waterEnd(startWater) // Default End = Start
+                        .recordedByStaff(staff)
                         .recordedAt(LocalDateTime.now())
                         .build();
                 newReading.setIsFirstMonth(!lastReadingOpt.isPresent());
 
                 meterReadingRepository.save(newReading);
                 result.add(newReading);
-                generatedNew = true;
             }
         }
         
@@ -88,13 +92,17 @@ public class MeterReadingService {
                             .waterStart(r.getWaterStart())
                             .waterEnd(r.getWaterEnd())
                             .isFirstMonth(!hasLastMonth)
+                            .recordedByStaffId(r.getRecordedByStaff() != null ? r.getRecordedByStaff().getStaffId() : null)
+                            .recordedByStaffName(r.getRecordedByStaff() != null ? r.getRecordedByStaff().getFullName() : null)
                             .build();
                 })
                 .toList();
     }
 
     @Transactional
-    public void bulkUpdateReadings(List<MeterReadingBulkUpdateRequest> requests) {
+    public void bulkUpdateReadings(List<MeterReadingBulkUpdateRequest> requests, Integer accountId) {
+        Staff staff = accountId != null ? staffRepository.findByAccountId(accountId).orElse(null) : null;
+
         for (MeterReadingBulkUpdateRequest req : requests) {
             meterReadingRepository.findById(req.getReadingId()).ifPresent(reading -> {
                 if (req.getElectricStart() != null) {
@@ -109,6 +117,10 @@ public class MeterReadingService {
                 if (req.getWaterEnd() != null) {
                     reading.setWaterEnd(req.getWaterEnd());
                 }
+                if (staff != null) {
+                    reading.setRecordedByStaff(staff);
+                }
+                reading.setRecordedAt(LocalDateTime.now());
                 meterReadingRepository.save(reading);
             });
         }

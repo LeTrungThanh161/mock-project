@@ -75,6 +75,14 @@ export const checkoutContract = async (contractId: number) => {
   return response.data;
 };
 
+export const getAllContracts = async (buildingId?: number) => {
+  const response = await api.get('/contracts', {
+    params: buildingId ? { buildingId } : {}
+  });
+  return response.data;
+};
+
+
 // ─── Admin Account Management ─────────────────────────────────────────────────
 
 export const getStaffList = async () => {

@@ -16,6 +16,7 @@ import { StudentHelpdesk } from './pages/StudentHelpdesk';
 import { RoomRegistration } from './pages/RoomRegistration';
 import { Infrastructure } from './pages/Infrastructure';
 import { Contracts } from './pages/Contracts';
+import { AdminContracts } from './pages/AdminContracts';
 import { Accounts } from './pages/Accounts';
 import './App.css';
 import { useEffect } from 'react';
@@ -39,6 +40,11 @@ const RoleBasedInvoices = () => {
 const RoleBasedHelpdesk = () => {
   const { user } = useAuth();
   return user?.role === 'STUDENT' ? <StudentHelpdesk /> : <IssueTickets />;
+};
+
+const RoleBasedContracts = () => {
+  const { user } = useAuth();
+  return user?.role === 'STUDENT' ? <Contracts /> : <AdminContracts />;
 };
 
 function AppRoutes() {
@@ -73,7 +79,7 @@ function AppRoutes() {
         <Route path="students" element={<Dashboard />} />
         <Route path="accounts" element={<Accounts />} />
         <Route path="applications" element={<Dashboard />} />
-        <Route path="contracts" element={<Contracts />} />
+        <Route path="contracts" element={<RoleBasedContracts />} />
         <Route path="absences" element={<Dashboard />} />
         <Route path="invoices" element={<RoleBasedInvoices />} />
         <Route path="room-registration" element={<RoomRegistration />} />

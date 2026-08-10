@@ -3,6 +3,7 @@ package com.dormitory.management.modules.finance.service;
 import com.dormitory.management.constants.PaymentStatus;
 import com.dormitory.management.constants.UtilityType;
 import com.dormitory.management.modules.auth.entity.Staff;
+import com.dormitory.management.modules.auth.repository.StaffRepository;
 import com.dormitory.management.modules.finance.entity.Invoice;
 import com.dormitory.management.modules.finance.entity.MeterReading;
 import com.dormitory.management.modules.finance.entity.PricingTier;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,9 +26,16 @@ public class UtilityService {
     private final MeterReadingRepository meterReadingRepository;
     private final PricingTierRepository pricingTierRepository;
     private final InvoiceRepository invoiceRepository;
+    private final StaffRepository staffRepository;
 
     @Transactional
-    public MeterReading saveMeterReading(MeterReading reading) {
+    public MeterReading saveMeterReading(MeterReading reading, Integer accountId) {
+        if (accountId != null) {
+            staffRepository.findByAccountId(accountId).ifPresent(reading::setRecordedByStaff);
+        }
+        if (reading.getRecordedAt() == null) {
+            reading.setRecordedAt(LocalDateTime.now());
+        }
         return meterReadingRepository.save(reading);
     }
 
