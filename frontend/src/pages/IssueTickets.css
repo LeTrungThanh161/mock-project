@@ -167,6 +167,7 @@
 .tk-status-dot.red { background: #dc2626; }
 .tk-status-dot.orange { background: #d97706; }
 .tk-status-dot.blue { background: #3b82f6; }
+.tk-status-dot.gray { background: #6b7280; }
 
 .tk-btn-action {
   background: #0f172a;

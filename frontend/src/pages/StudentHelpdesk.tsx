@@ -148,6 +148,7 @@ export const StudentHelpdesk = () => {
     if (status === 'Pending') return 'CHỜ XỬ LÝ';
     if (status === 'InProgress') return 'ĐANG XỬ LÝ';
     if (status === 'Completed') return 'ĐÃ HOÀN THÀNH';
+    if (status === 'Rejected') return 'ĐÃ TỪ CHỐI';
     return status;
   };
 
@@ -230,7 +231,7 @@ export const StudentHelpdesk = () => {
                   <div key={item.ticketId} className={`sh-history-item ${isProcessing ? 'active' : ''}`} onClick={() => setSelectedTicket(item)} style={{ cursor: 'pointer' }}>
                     <div className="flex justify-between">
                       <div>
-                        <span className={`sh-badge-status ${item.status === 'Completed' ? 'gray' : item.status === 'Pending' ? 'orange' : 'blue'}`}>
+                        <span className={`sh-badge-status ${item.status === 'Completed' ? 'gray' : item.status === 'Pending' ? 'orange' : item.status === 'Rejected' ? 'red' : 'blue'}`}>
                           {getStatusText(item.status)}
                         </span>
                         {item.assignedTechnician && <span className="sh-assigned-badge">{item.assignedTechnician.fullName}</span>}
@@ -301,34 +302,46 @@ export const StudentHelpdesk = () => {
                         <div className="sh-tl-time">{new Date(selectedTicket.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
 
-                      <div className="sh-timeline-item">
-                        <div className={`sh-tl-icon ${selectedTicket.status !== 'Pending' ? 'done' : 'pending'}`}>{selectedTicket.status !== 'Pending' ? '✓' : ''}</div>
-                        <div className="sh-tl-content">
-                          <h5 className={selectedTicket.status !== 'Pending' ? "text-blue" : "text-gray"}>Đã phân công xử lý</h5>
-                          {selectedTicket.assignedTechnician ? (
-                            <p>Kỹ thuật viên <strong>[{selectedTicket.assignedTechnician.fullName}]</strong> đã được phân công và đang đến làm việc.</p>
-                          ) : (
-                            <p>Đang chờ Ban quản lý phân công kỹ thuật viên.</p>
-                          )}
+                      {selectedTicket.status === 'Rejected' ? (
+                        <div className="sh-timeline-item">
+                          <div className="sh-tl-icon" style={{ borderColor: '#dc2626', color: '#dc2626', fontWeight: 'bold' }}>✕</div>
+                          <div className="sh-tl-content">
+                            <h5 style={{ color: '#dc2626' }}>Yêu cầu đã bị từ chối</h5>
+                            <p>Ban quản lý đã từ chối đơn yêu cầu hỗ trợ này.</p>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="sh-timeline-item">
+                            <div className={`sh-tl-icon ${selectedTicket.status !== 'Pending' ? 'done' : 'pending'}`}>{selectedTicket.status !== 'Pending' ? '✓' : ''}</div>
+                            <div className="sh-tl-content">
+                              <h5 className={selectedTicket.status !== 'Pending' ? "text-blue" : "text-gray"}>Đã phân công xử lý</h5>
+                              {selectedTicket.assignedTechnician ? (
+                                <p>Kỹ thuật viên <strong>[{selectedTicket.assignedTechnician.fullName}]</strong> đã được phân công và đang đến làm việc.</p>
+                              ) : (
+                                <p>Đang chờ Ban quản lý phân công kỹ thuật viên.</p>
+                              )}
+                            </div>
+                          </div>
 
-                      <div className="sh-timeline-item">
-                        <div className={`sh-tl-icon ${selectedTicket.status === 'Completed' ? 'done' : 'pending'}`}>{selectedTicket.status === 'Completed' ? '✓' : ''}</div>
-                        <div className="sh-tl-content">
-                          <h5 className={selectedTicket.status === 'Completed' ? "text-blue" : "text-gray"}>Đã hoàn thành</h5>
-                          <p>Sự cố đã được khắc phục xong.</p>
-                        </div>
-                        {selectedTicket.resolvedAt && (
-                          <div className="sh-tl-time">{new Date(selectedTicket.resolvedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
-                        )}
-                      </div>
+                          <div className="sh-timeline-item">
+                            <div className={`sh-tl-icon ${selectedTicket.status === 'Completed' ? 'done' : 'pending'}`}>{selectedTicket.status === 'Completed' ? '✓' : ''}</div>
+                            <div className="sh-tl-content">
+                              <h5 className={selectedTicket.status === 'Completed' ? "text-blue" : "text-gray"}>Đã hoàn thành</h5>
+                              <p>Sự cố đã được khắc phục xong.</p>
+                            </div>
+                            {selectedTicket.resolvedAt && (
+                              <div className="sh-tl-time">{new Date(selectedTicket.resolvedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '10px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
                       <div>
                         <strong style={{ color: '#666', fontSize: '0.9rem', display: 'block' }}>Trạng thái hiện tại:</strong>
-                        <span className={`sh-badge-status ${selectedTicket.status === 'Completed' ? 'gray' : selectedTicket.status === 'Pending' ? 'orange' : 'blue'}`} style={{ marginTop: '5px', display: 'inline-block' }}>
+                        <span className={`sh-badge-status ${selectedTicket.status === 'Completed' ? 'gray' : selectedTicket.status === 'Pending' ? 'orange' : selectedTicket.status === 'Rejected' ? 'red' : 'blue'}`} style={{ marginTop: '5px', display: 'inline-block' }}>
                           {getStatusText(selectedTicket.status)}
                         </span>
                       </div>
