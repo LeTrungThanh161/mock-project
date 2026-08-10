@@ -28,8 +28,8 @@ public class PayOSService implements PaymentGatewayService {
             @Value("${payos.client-id}") String clientId,
             @Value("${payos.api-key}") String apiKey,
             @Value("${payos.checksum-key}") String checksumKey,
-            @Value("${payos.return-url:https://5sptsgxl-5173.asse.devtunnels.ms/invoices}") String returnUrl,
-            @Value("${payos.cancel-url:https://5sptsgxl-5173.asse.devtunnels.ms/invoices") String cancelUrl) {
+            @Value("${payos.return-url:https://quanliktxcpt.vercel.app/invoices}") String returnUrl,
+            @Value("${payos.cancel-url:https://quanliktxcpt.vercel.app/invoices}") String cancelUrl) {
 
         PayOS tempPayOS = null;
         try {
